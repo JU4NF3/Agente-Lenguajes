@@ -1,0 +1,308 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 20%, #1c1c1c, #000 70%);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/* Paleta NISMO: negro + rojo de carrera, la identidad de marca
+   que usa Nissan en todo su equipamiento y línea de alto rendimiento. */
+:root {
+  --nismo-black: #0a0a0a;
+  --nismo-red: #c8102e;
+  --nismo-grey: #b8b8b8;
+
+  /* Estado del "puntero" sobre la carta: el .js escribe estas variables
+     en tiempo real (según la posición del mouse/dedo) y el CSS de abajo
+     las lee para inclinar la carta y mover el brillo. Estos son los
+     valores por defecto, cuando nadie está tocando la carta. */
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --background-x: 50%;
+  --background-y: 50%;
+  --card-opacity: 0;
+
+  /* Los 6 tonos del "arcoíris holográfico", inspirados en el efecto
+     de brillo de https://github.com/simeydotme/pokemon-cards-css
+     (repeating-linear-gradient + mix-blend-mode: color-dodge que
+     sigue al puntero). Reimplementado acá en CSS/JS simple, sin su
+     framework Svelte. */
+  --sunpillar-1: hsl(2, 100%, 73%);
+  --sunpillar-2: hsl(53, 100%, 69%);
+  --sunpillar-3: hsl(93, 100%, 69%);
+  --sunpillar-4: hsl(176, 100%, 76%);
+  --sunpillar-5: hsl(228, 100%, 74%);
+  --sunpillar-6: hsl(283, 100%, 73%);
+}
+
+/* ============================================
+   ESTILOS BASE (mobile-first)
+   ============================================
+   Todo lo que está FUERA de un @media es el punto de partida:
+   se aplica siempre, en cualquier tamaño de pantalla, a menos
+   que una media query más abajo lo sobreescriba.
+
+   La estrategia "mobile-first" significa diseñar primero para
+   pantallas chicas y usar min-width para ir agregando/cambiando
+   estilos a medida que la pantalla crece. Es más fácil que al
+   revés (max-width, "desktop-first") porque en celulares hay
+   menos espacio y te obliga a priorizar qué es esencial.
+
+   En mobile la carta es una columna: foto arriba, info abajo. */
+.card {
+  width: 300px;
+  perspective: 900px; /* le da profundidad 3D a los hijos que roten */
+}
+
+.card__rotator {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  background: linear-gradient(160deg, #161616, #050505);
+  box-shadow:
+    0 10px 30px -8px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  /* la inclinación 3D en sí: rotateY mueve el eje izquierda/derecha,
+     rotateX el eje arriba/abajo. Los valores los actualiza el .js. */
+  transform-style: preserve-3d;
+  transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease;
+}
+
+/* mientras el puntero se mueve sobre la carta quitamos la transición
+   para que la inclinación responda al instante, sin "arrastre" */
+.card.interacting .card__rotator {
+  transition: none;
+}
+
+.card.interacting .card__rotator {
+  box-shadow:
+    0 20px 60px -10px rgba(200, 16, 46, 0.45),
+    0 0 40px -12px rgba(200, 16, 46, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.card__media {
+  position: relative;
+  height: 180px;
+}
+
+.car-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card__badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--nismo-red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.6);
+}
+
+.card__body {
+  padding: 16px;
+  color: var(--nismo-grey);
+}
+
+.card__title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #fff;
+  font-weight: 700;
+}
+.card__title span {
+  color: var(--nismo-red);
+}
+
+.card__desc {
+  margin: 0 0 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.card__stats {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+.card__stats li {
+  text-align: center;
+}
+.card__stats strong {
+  display: block;
+  font-size: 18px;
+  color: #fff;
+}
+.card__stats span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nismo-red);
+}
+
+.card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card__color {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #fff;
+}
+.card__color i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--nismo-red);
+  display: inline-block;
+}
+
+/* ============================================
+   CAPAS DE EFECTO HOLOGRÁFICO
+   ============================================
+   Dos capas invisibles (opacity: 0 en reposo) puestas encima de todo
+   el contenido. El .js sube --card-opacity a 1 mientras el puntero
+   está sobre la carta, y mueve --pointer-x/y y --background-x/y según
+   dónde está el cursor. */
+.card__shine,
+.card__glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--card-opacity);
+}
+
+.card__shine {
+  /* franjas de color que se desplazan con el puntero + color-dodge
+     (mezcla que "quema" los colores de abajo) = el brillo arcoíris
+     típico de una carta holográfica física. */
+  background-image: repeating-linear-gradient(
+    110deg,
+    var(--sunpillar-1) 0%,
+    var(--sunpillar-2) 12%,
+    var(--sunpillar-3) 24%,
+    var(--sunpillar-4) 36%,
+    var(--sunpillar-5) 48%,
+    var(--sunpillar-6) 60%,
+    var(--sunpillar-1) 72%
+  );
+  background-size: 300% 300%;
+  background-position: var(--background-x) var(--background-y);
+  mix-blend-mode: color-dodge;
+  filter: brightness(1) contrast(1.3) saturate(1.3);
+}
+
+.card__glare {
+  /* un reflejo blanco que sigue exactamente la posición del puntero,
+     como la luz rebotando en la superficie plástica de la carta. */
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsla(0, 0%, 100%, 0.85) 0%,
+    hsla(0, 0%, 100%, 0.25) 35%,
+    hsla(0, 0%, 0%, 0.4) 100%
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Respeto por quienes prefieren menos movimiento en pantalla:
+   desactivamos la inclinación 3D pero dejamos el resto del diseño. */
+@media (prefers-reduced-motion: reduce) {
+  .card__rotator {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* ============================================
+   MEDIA QUERY: versión web
+   ============================================
+   @media (min-width: 768px) { ... } le dice al navegador:
+   "el CSS de aquí adentro solo aplica cuando el viewport
+   (el ancho visible de la ventana) mide 768px o más".
+
+   min-width = "desde este ancho para ARRIBA".
+   Si en cambio usaras max-width, sería "desde este ancho
+   para ABAJO" — es el patrón que se usa cuando el diseño
+   es desktop-first en vez de mobile-first.
+
+   ¿Por qué 768px? Es un breakpoint estándar que separa
+   "celular" de "tablet/escritorio". Si usaras 1024px, una
+   tablet en vertical (normalmente ~768-820px de ancho)
+   seguiría viendo el layout de celular, que probablemente
+   no es lo que quieres.
+
+   En desktop la carta pasa de columna a fila: foto a la
+   izquierda, info a la derecha, y todo más grande. Solo
+   escribo acá lo que CAMBIA respecto a la base — el resto
+   (colores, sombras, efecto holográfico) se hereda igual. */
+@media (min-width: 768px) {
+  .card {
+    width: 640px;
+  }
+
+  .card__rotator {
+    flex-direction: row;
+    height: 360px;
+  }
+
+  .card__media {
+    width: 50%;
+    height: 100%;
+  }
+
+  .card__body {
+    width: 50%;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .card__title {
+    font-size: 30px;
+  }
+
+  .card__desc {
+    font-size: 14px;
+  }
+
+  .card__stats strong {
+    font-size: 26px;
+  }
+}
+
+/* Tip para seguir practicando: podrías agregar un segundo
+   breakpoint más grande, por ejemplo:
+   @media (min-width: 1200px) { ... }
+   para un layout todavía distinto en pantallas muy anchas.
+   Las media queries se van "apilando": el navegador aplica
+   la base, luego la primera que su ancho cumpla, luego la
+   siguiente, en el orden en que están escritas en el archivo. */

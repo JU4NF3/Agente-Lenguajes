@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<!-- Sin esta línea el navegador asume el ancho de una pantalla de escritorio
+     por defecto, y las media queries de mobile-first no se disparan bien
+     en el celular real (solo en el simulador del navegador). -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carta auto deportivo</title>
+<link rel="stylesheet" href="carta_auto_media_queries_2026-08-28_v2.css">
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="card__rotator" id="rotator">
+
+      <div class="card__media">
+        <img
+          class="car-photo"
+          src="../../INPUT/Nissan_GT-R_Nismo_2020_(2).avif"
+          alt="Nissan GT-R NISMO 2020, vista de tres cuartos"
+        >
+        <span class="card__badge">NISMO</span>
+      </div>
+
+      <div class="card__body">
+        <h1 class="card__title">Nissan GT-R <span>NISMO</span></h1>
+        <p class="card__desc">
+          V6 3.8L biturbo VR38DETT armado a mano por un takumi. Tracción
+          integral ATTESA E-TS y frenos de cerámica con rines forjados
+          RAYS de 20".
+        </p>
+        <ul class="card__stats">
+          <li><strong>600</strong><span>HP</span></li>
+          <li><strong>481</strong><span>lb-pie</span></li>
+          <li><strong>2.9s</strong><span>0-100 km/h</span></li>
+        </ul>
+        <div class="card__footer">
+          <span class="card__color"><i></i>Solid Red</span>
+          <span class="card__trim">Tope de gama</span>
+        </div>
+      </div>
+
+      <!-- Capas de efecto: siguen al puntero para simular el brillo
+           holográfico y el reflejo de una carta física. Ver el .js. -->
+      <div class="card__shine"></div>
+      <div class="card__glare"></div>
+
+    </div>
+  </div>
+
+  <script src="carta_auto_media_queries_2026-08-28_v2.js"></script>
+</body>
+</html>
