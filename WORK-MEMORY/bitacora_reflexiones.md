@@ -15,3 +15,10 @@ que nunca definí.
 Me costó organizar las referencias visuales por tema en vez de por sitio de origen. Al principio
 quería agruparlas por dónde las encontré, pero agruparlas por lo que inspiran (color, tipografía,
 layout) tiene más sentido para el proyecto.
+
+## 2026-08-28
+
+Aprendí un poco sobre media queries. El ejercicio que más me gustó fue hacer una tarjeta tipo
+carta — en LayoutIt se ve fácil y no profundizamos tanto en el código como tal, pero la misma
+página ya usa ciertas cosas que sé que se aplican en código real, así que me parece una buena
+forma de ir aprendiendo antes de escribirlo directamente a mano.
