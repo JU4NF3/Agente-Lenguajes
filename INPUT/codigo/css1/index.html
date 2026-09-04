@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estado 2 — Grid Básico (para completar en clase)</title>
+</head>
+
+<style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    body.dark-mode{
+        background-color: #000000;
+    }
+
+    /* ==========================================
+       ESTADO 2 — Grid Básico (SIN RESOLVER a propósito)
+       Este es el punto de partida para escribirlo en vivo en clase.
+       Sigue los TODO en orden — cada uno agrega UNA propiedad de la
+       tabla "Propiedades del contenedor" del recurso de Grid/Flexbox
+       (semana_03_recurso_css_grid_flexbox_tailwind.md).
+    ========================================== */
+    .grid-container {
+
+      /* TODO 1: activa Grid en este contenedor.
+         Propiedad: display
+         Valor: grid
+      */
+      display: grid;
+      /* TODO 2: define 3 columnas de 200px cada una.
+         Propiedad: grid-template-columns
+         Pista: puedes escribir "200px 200px 200px" a mano,
+         o usar el atajo repeat(3, 200px) — ambos hacen lo mismo.
+      */
+      grid-template-columns: repeat(3, auto);
+
+      /* TODO 3: agrega espacio entre las celdas, sin usar márgenes.
+         Propiedad: gap
+         Valor sugerido: 15px
+      */
+      gap: 20px;
+      /* Ya viene incluido, no lo toques: */
+      background-color: #ecf0f1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .grid-container2 {
+
+      /* TODO 1: activa Grid en este contenedor.
+         Propiedad: display
+         Valor: grid
+      */
+      display: grid;
+      /* TODO 2: define 3 columnas de 200px cada una.
+         Propiedad: grid-template-columns
+         Pista: puedes escribir "200px 200px 200px" a mano,
+         o usar el atajo repeat(3, 200px) — ambos hacen lo mismo.
+      */
+      grid-template-columns: repeat(3, auto);
+
+      /* TODO 3: agrega espacio entre las celdas, sin usar márgenes.
+         Propiedad: gap
+         Valor sugerido: 15px
+      */
+      gap: 20px;
+      /* Ya viene incluido, no lo toques: */
+      background-color: #ffffff;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .grid-item {
+      background-color: #3498db;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      font-size: 1.5rem;
+      border-radius: 6px;
+    }
+
+    .grid-item2 {
+      background-color: #3f8d34;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      font-size: 1.5rem;
+      border-radius: 6px;
+    }
+
+    .grid-container3 {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      gap: 20px;
+      background-color: #ecf0f1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .grid-item3 {
+      background-color: #e67e22;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      font-size: 1.5rem;
+      border-radius: 6px;
+    }
+
+    /* TODO 4 (opcional, para quien termine antes): alinea el
+       contenido de cada celda al centro verticalmente.
+       Propiedad: align-items (va en .grid-container, no en .grid-item)
+       Valor: center
+    */
+
+@media (min-width: 500px) {
+      body {
+        background-color: #98FB98; /* Verde = ya estamos en tablet */
+      }
+      .grid-item {
+        background-color: #000000;
+        font-size: 2rem; /* el texto también puede cambiar, no solo el color */
+      }
+      .grid-item2 {
+        display:none;
+      }
+      .grid-container2 {
+        display:none;
+      }
+    }
+
+@media (min-width: 700px) {
+      body{
+        background-color: yellow;
+      }
+      h1{
+        font-size: 4rem;
+      }
+      .grid-item {
+        border-radius: 100px;
+        text-align: left;
+      }
+    }
+
+</style>
+<body>
+  <h1>Mi Primer Grid</h1>
+  <p style="margin: 20px 0;">Grid con 3 columnas de 200px cada una — completa los TODO del CSS.</p>
+
+  <div class="grid-container">
+    <div class="grid-item">1</div>
+    <div class="grid-item">2</div>
+    <div class="grid-item">3</div>
+    <div class="grid-item">4</div>
+    <div class="grid-item">5</div>
+    <div class="grid-item">6</div>
+    <div class="grid-item">7</div>
+    <div class="grid-item">8</div>
+    <div id="demo"class="grid-item">9</div>
+  </div>
+
+
+  <button id="boton">Botón</button>
+  <button id="boton2">Clarito</button>
+
+  <div id="caja2" class="grid-container2">
+    <div class="grid-item2">1</div>
+    <div class="grid-item2">2</div>
+    <div class="grid-item2">3</div>
+  </div>
+
+  <div id="caja3" class="grid-container3">
+    <div class="grid-item3">1</div>
+    <div class="grid-item3">2</div>
+    <div class="grid-item3">3</div>
+  </div>
+
+  <script>
+    // Guarda una referencia a la celda #9 del primer grid para poder modificarla.
+    let txt = document.getElementById("demo");
+    txt.textContent="Hola mundo"
+
+    // Al hacer click en "Botón", cambia el texto de la celda #9.
+    let btnMsg = document.getElementById("boton");
+    btnMsg.addEventListener("click", function () {
+      console.log("Botón clickeado");
+        txt.textContent="Estoy en clase de Lenguajes";
+    });
+
+    // Al hacer click en "Clarito"/"Oscurito": alterna la clase dark-mode en <body>
+    // y luego revisa el estado actual para que el texto del botón coincida.
+    // Importante: esta revisión va DENTRO del listener, porque solo debe
+    // correr cuando el evento ocurre (no una sola vez al cargar la página).
+    let btn2 = document.getElementById("boton2");
+    btn2.addEventListener("click", function () {
+      document.body.classList.toggle("dark-mode")
+      if (document.body.classList.contains('dark-mode'))
+      { btn2.textContent = 'Oscurito'; }
+      else { btn2.textContent = 'Clarito'; }
+    });
+
+    // Oculta/muestra #caja3 según el ancho de la ventana, imitando en JS
+    // lo que el media query (min-width: 500px) hace por CSS con #caja2.
+    let caja3 = document.getElementById("caja3");
+    function checkCaja3() {
+      if (window.innerWidth >= 500) {
+        caja3.style.display = "none"; // pantalla >= 500px: se oculta
+      } else {
+        caja3.style.display = "grid"; // pantalla chica: se muestra como grid
+      }
+    }
+    checkCaja3(); // se llama una vez al cargar, porque "resize" no dispara solo
+    window.addEventListener("resize", checkCaja3); // y se vuelve a llamar en cada resize
+
+  </script>
+</body>
+</html>
