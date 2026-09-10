@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing — Evolución del Buen Chico</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #222;
+      text-align: center;
+    }
+
+    header {
+      padding: 40px 20px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: #666;
+    }
+
+    .image-section {
+      padding: 20px;
+    }
+
+    .image-section img {
+      max-width: 320px;
+      width: 90%;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease;
+    }
+
+    .image-section img:hover {
+      transform: scale(1.03);
+    }
+
+    #next-btn {
+      display: block;
+      margin: 20px auto 0;
+      padding: 10px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 20px;
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+
+    #next-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .description-section {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px 20px 50px;
+    }
+
+    .description-section p {
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+
+    .stage-counter {
+      font-size: 0.9rem;
+      color: #999;
+      margin-top: 10px;
+    }
+
+    @media (min-width: 700px) {
+      header h1 {
+        font-size: 3.2rem;
+      }
+
+      .image-section img {
+        max-width: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 id="title">Etapa 1: Cachorro</h1>
+    <p>Landing interactiva — haz clic en el botón para avanzar de etapa</p>
+  </header>
+
+  <section class="image-section">
+    <img id="hero-image" src="../../Imagenes/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg" alt="Etapa actual del buen chico">
+    <button id="next-btn">Siguiente etapa →</button>
+  </section>
+
+  <section class="description-section">
+    <p id="description">Recién llegado, todavía no sabe lo que le espera.</p>
+    <p id="stage-counter">1 / 3</p>
+  </section>
+
+  <script>
+
+    const titleEl = document.getElementById("title");
+    const descriptionEl = document.getElementById("description");
+    const imagen = document.getElementById("hero-image")
+    const image1 = "../../Imagenes/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg";
+    const image2 = "../../Imagenes/6cc20351364d71a80fbf2a5e8d2bc82d.jpg";
+    const image3 = "../../Imagenes/e64d2f640b07a61f3dbbc1431abe3190.jpg";
+    const nextBtn = document.getElementById("next-btn");
+
+    function resize() {
+      if (window.innerWidth >= 1024) {
+        titleEl.textContent = "modo Desktop";
+        descriptionEl.textContent = "Esto es el modo Desktop";
+        imagen.src = image3;
+      } else if (window.innerWidth >= 768) {
+        titleEl.textContent = "modo Tablet";
+        descriptionEl.textContent = "Esto es el modo Tablet";
+        imagen.src = image2;
+      } else {
+        titleEl.textContent = "modo Teléfono";
+        descriptionEl.textContent = "Recién llegado, todavía no sabe lo que le espera.";
+        imagen.src = image1;
+      }
+    }
+
+    window.addEventListener("resize", resize);
+  </script>
+
+</body>
+</html>
