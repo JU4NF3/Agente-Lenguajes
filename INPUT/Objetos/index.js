@@ -6,7 +6,7 @@ let perritos = [
         nombre: "Leo",
         poderes: ["dormir", "comer mucho", "Mega Ladrido", "Salto De Fuego"],
         description: "Leo, perro san bernardo. Un pancake radioactivo lo mordió y se convirtió en un perro con poderes",
-        raza: "San Bernardo",
+        raza: "Shih-Tzu",
         imagen: "https://placedog.net/500/280?id=1",
         universo: "Perroid004",
         aura: 10000,
@@ -18,7 +18,7 @@ let perritos = [
         nombre: "Mochi",
         poderes: ["teletransportar juguetes", "orejas radar"],
         description: "Mochi lamió un enchufe con sabor a matcha y desde entonces teletransporta cualquier objeto del tamaño de una pelota",
-        raza: "Shiba Inu",
+        raza: "Golden Retriever",
         imagen: "https://placedog.net/500/280?id=2",
         universo: "Perroid011",
         aura: 4200,
@@ -30,7 +30,7 @@ let perritos = [
         nombre: "Rocko",
         poderes: ["congelar el tiempo (3s)", "siesta táctica"],
         description: "Rocko se tragó una batería de reloj mientras dormía la siesta y ahora puede congelar el tiempo por 3 segundos exactos",
-        raza: "Bulldog Francés",
+        raza: "Golden Retriever",
         imagen: "https://placedog.net/500/280?id=3",
         universo: "Perroid007",
         aura: 6100,
@@ -42,7 +42,7 @@ let perritos = [
         nombre: "Nube",
         poderes: ["electricidad estática", "pelaje escudo"],
         description: "Nube durmió una noche entera bajo una antena de wifi rota y despertó controlando la electricidad estática",
-        raza: "Samoyedo",
+        raza: "Labrador",
         imagen: "https://placedog.net/500/280?id=4",
         universo: "Perroid002",
         aura: 8300,
@@ -54,7 +54,7 @@ let perritos = [
         nombre: "Trueno",
         poderes: ["rayos con la cola", "ladrido sónico"],
         description: "Trueno mordió un cable pelado en plena tormenta y ahora genera rayos cada vez que mueve la cola",
-        raza: "Pastor Alemán",
+        raza: "Lobo Siberiano",
         imagen: "https://placedog.net/500/280?id=5",
         universo: "Perroid015",
         aura: 15400,
@@ -66,7 +66,7 @@ let perritos = [
         nombre: "Pixel",
         poderes: ["pausar la realidad", "vidas extra"],
         description: "Pixel se cayó dentro de una consola retro abierta y ahora puede pausar la realidad como si fuera un videojuego",
-        raza: "Dálmata",
+        raza: "Weimaraner",
         imagen: "https://placedog.net/500/280?id=6",
         universo: "Perroid099",
         aura: 9900,
@@ -78,7 +78,7 @@ let perritos = [
         nombre: "Canela",
         poderes: ["escupir fuego al estornudar", "aliento picante"],
         description: "Canela se comió un chile fantasma por accidente y ahora escupe fuego cada vez que estornuda",
-        raza: "Chihuahua",
+        raza: "Schnauzer",
         imagen: "https://placedog.net/500/280?id=7",
         universo: "Perroid021",
         aura: 3300,
@@ -90,7 +90,7 @@ let perritos = [
         nombre: "Bruno",
         poderes: ["invisibilidad al bostezar", "olfato fantasma"],
         description: "Bruno encontró un anillo enterrado en el jardín y ahora se vuelve invisible cada vez que bosteza",
-        raza: "Labrador",
+        raza: "Border Collie",
         imagen: "https://placedog.net/500/280?id=8",
         universo: "Perroid033",
         aura: 7200,
@@ -102,7 +102,7 @@ let perritos = [
         nombre: "Luna",
         poderes: ["controlar las mareas", "aullido eclipse"],
         description: "Luna aulló tan fuerte durante un eclipse que absorbió parte de los poderes de la luna, ahora controla las mareas",
-        raza: "Husky Siberiano",
+        raza: "Golden Retriever",
         imagen: "https://placedog.net/500/280?id=9",
         universo: "Perroid044",
         aura: 12800,
@@ -114,7 +114,7 @@ let perritos = [
         nombre: "Tofu",
         poderes: ["rebote infinito", "esquiva ataques"],
         description: "Tofu cayó sin querer en una fuente de gelatina radioactiva del laboratorio del vecino y ahora rebota como resorte sin cansarse",
-        raza: "Poodle",
+        raza: "Braco Alemán",
         imagen: "https://placedog.net/500/280?id=10",
         universo: "Perroid058",
         aura: 5600,
@@ -126,7 +126,7 @@ let perritos = [
         nombre: "Max",
         poderes: ["clonarse temporalmente", "velocidad x2"],
         description: "Max persiguió una ardilla directo hacia un portal dimensional en el parque y ahora puede clonarse por un rato",
-        raza: "Golden Retriever",
+        raza: "Schnauzer",
         imagen: "https://placedog.net/500/280?id=11",
         universo: "Perroid066",
         aura: 11100,
@@ -138,7 +138,7 @@ let perritos = [
         nombre: "Kiwi",
         poderes: ["estirarse como chicle", "colarse por rendijas"],
         description: "Kiwi olfateó un frasco de pegamento extraterrestre caído de un satélite y ahora estira su cuerpo como si fuera chicle",
-        raza: "Beagle",
+        raza: "Pastor Alemán",
         imagen: "https://placedog.net/500/280?id=12",
         universo: "Perroid077",
         aura: 4800,
@@ -164,6 +164,14 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
 // si el cursor se mueve muy rápido y el evento se dispara "fuera" del borde.
 function clamp(value, min = 0, max = 100) {
     return Math.min(Math.max(value, min), max);
+}
+
+// Pone en mayúscula solo la primera letra de un texto (el resto queda
+// igual). Se usa al mostrar los poderes, porque en el array de datos están
+// escritos en minúscula ("dormir", "comer mucho") pero en pantalla se ven
+// mejor como "Dormir", "Comer mucho".
+function capitalize(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // Traduce un valor de un rango [fromMin, fromMax] a otro [toMin, toMax].
@@ -253,7 +261,7 @@ function renderPerrito(perrito) {
     perrito.poderes.forEach((poder) => {
         const poderElement = document.createElement("span");
         poderElement.className = "card__poder";
-        poderElement.textContent = poder;
+        poderElement.textContent = capitalize(poder);
         poderesElement.appendChild(poderElement);
     });
 
@@ -297,7 +305,7 @@ function openModal(perrito) {
     perrito.poderes.forEach((poder) => {
         const poderElement = document.createElement("span");
         poderElement.className = "card__poder";
-        poderElement.textContent = poder;
+        poderElement.textContent = capitalize(poder);
         modalPoderesElement.appendChild(poderElement);
     });
 
