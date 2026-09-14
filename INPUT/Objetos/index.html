@@ -10,6 +10,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Da contexto antes de las cards: sin esto no queda claro qué es la
+         página con solo ver el grid. Va arriba del botón de modo oscuro. -->
+    <header class="intro">
+        <h1 class="intro__title">🐾 Perritos Coleccionables</h1>
+        <p class="intro__subtitle">
+            Estas son unas tarjetas coleccionables de perritos con poderes
+            extraordinarios y únicos. Diviértete viendo cada una de ellas y
+            conociéndolos a todos.
+        </p>
+    </header>
+
     <!-- El click lo escucha index.js: agrega/quita la clase "dark-mode" en
          <body>, y el CSS lee esa clase para cambiar las variables de color. -->
     <button id="theme-toggle" class="theme-toggle" type="button">🌙 Modo oscuro</button>
@@ -56,8 +67,14 @@
                         <span class="card__stat-value" data-field="aura"></span>
                         <span class="card__stat-label">Aura</span>
                     </div>
-                    <!-- vacío: index.js agrega acá un <span class="card__poder">
-                         por cada elemento del array perrito.poderes -->
+                </div>
+
+                <!-- Sección aparte de las stats para que quede claro que esto
+                     son habilidades, no un dato numérico más. index.js agrega
+                     acá un <span class="card__poder"> por cada elemento del
+                     array perrito.poderes. -->
+                <div class="card__poderes-section">
+                    <h3 class="card__poderes-title">Poderes</h3>
                     <div class="card__poderes" data-field="poderes"></div>
                 </div>
 
@@ -98,7 +115,10 @@
                     <span class="modal__stat-label">Aura</span>
                 </div>
             </div>
-            <div class="modal__poderes" id="modal-poderes"></div>
+            <div class="modal__poderes-section">
+                <h3 class="modal__poderes-title">Poderes</h3>
+                <div class="modal__poderes" id="modal-poderes"></div>
+            </div>
         </div>
     </dialog>
 

@@ -77,6 +77,24 @@ body::before {
     animation: purpleFire 6s ease-in-out infinite alternate;
 }
 
+.intro {
+    max-width: 560px;
+    padding: 0 16px;
+    text-align: center;
+}
+
+.intro__title {
+    margin: 0 0 8px 0;
+    font-size: 1.6rem;
+}
+
+.intro__subtitle {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
 .theme-toggle {
     justify-self: center;
     padding: 8px 16px;
@@ -227,6 +245,19 @@ body::before {
     padding: 0 16px 16px 16px;
 }
 
+.card__poderes-section {
+    padding: 0 16px 16px 16px;
+}
+
+.card__poderes-title {
+    margin: 0 0 8px 0;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
 .card__stat {
     background: var(--stat-bg);
     border-radius: 10px;
@@ -251,11 +282,9 @@ body::before {
 }
 
 .card__poderes {
-    grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 10px 10px 10px 5px;
 }
 
 .card__poder {
@@ -268,6 +297,14 @@ body::before {
 
 /* Breakpoint 1: móvil pequeño */
 @media (max-width: 480px) {
+    .intro__title {
+        font-size: 1.3rem;
+    }
+
+    .intro__subtitle {
+        font-size: 0.85rem;
+    }
+
     .card__stats {
         grid-template-columns: 1fr;
     }
@@ -321,14 +358,38 @@ body::before {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
+/* El navegador agrega el atributo [open] al abrir el <dialog>, así que la
+   animación se dispara sola — no hace falta una clase extra desde el JS. */
+.modal[open] {
+    animation: modalIn 0.28s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .modal::backdrop {
     background: rgba(10, 5, 20, 0.6);
     backdrop-filter: blur(4px);
 }
 
+.modal[open]::backdrop {
+    animation: backdropIn 0.28s ease;
+}
+
 .modal__content {
     position: relative;
     padding: 20px;
+}
+
+/* Franja de acento pegada al borde superior del modal. Va en un
+   pseudo-elemento para no tener que agregar un <div> vacío al HTML. */
+.modal__content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--badge-bg), var(--poder-bg), var(--badge-bg));
+    /* sigue la curva del modal (border-radius: 20px) en las esquinas de arriba */
+    border-radius: 20px 20px 0 0;
 }
 
 .modal__close {
@@ -337,12 +398,39 @@ body::before {
     right: 12px;
     width: 32px;
     height: 32px;
+    /* grid + place-items centra la ✕ exacto, sin depender del line-height */
+    display: grid;
+    place-items: center;
+    z-index: 2; /* queda por encima de la imagen */
     border: none;
     border-radius: 999px;
     background: var(--stat-bg);
     color: var(--text);
     font-size: 1rem;
     cursor: pointer;
+    /* sin transition el hover sería un salto seco: esto interpola los
+       cambios de color y de transform durante 0.2s */
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.modal__close:hover {
+    background: var(--poder-bg);
+    color: #ffffff;
+    transform: scale(1.12) rotate(90deg);
+    box-shadow: 0 4px 14px rgba(123, 44, 191, 0.55);
+}
+
+/* feedback del click: se hunde un poco */
+.modal__close:active {
+    transform: scale(0.94) rotate(90deg);
+}
+
+/* :focus-visible = solo cuando llegaste con Tab, no al hacer click.
+   Sin esto el botón es invisible para quien navega con teclado. */
+.modal__close:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 2px;
 }
 
 .modal__image {
@@ -350,6 +438,10 @@ body::before {
     height: 220px;
     object-fit: cover;
     border-radius: 14px;
+    /* el inset dibuja un borde sutil por dentro de la imagen; el otro
+       shadow la despega del fondo del modal */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+        0 10px 24px -12px rgba(0, 0, 0, 0.6);
 }
 
 .modal__header {
@@ -400,6 +492,13 @@ body::before {
     border-radius: 10px;
     padding: 10px;
     text-align: center;
+    border: 1px solid transparent; /* reservado para que el hover no mueva el layout */
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.modal__stat:hover {
+    transform: translateY(-3px);
+    border-color: var(--badge-bg);
 }
 
 .modal__stat span {
@@ -418,10 +517,68 @@ body::before {
     letter-spacing: 0.03em;
 }
 
+.modal__poderes-title {
+    margin: 0 0 8px 0;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
 .modal__poderes {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+}
+
+/* index.js reutiliza la clase .card__poder acá dentro, por eso el selector
+   va anidado: así el hover aplica solo a los del modal, no a los de la card
+   (que ya tienen su propio efecto 3D). */
+.modal__poderes .card__poder {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal__poderes .card__poder:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 14px -4px rgba(123, 44, 191, 0.7);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes backdropIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Misma preferencia de accesibilidad que ya respetan las cards: si el
+   sistema pide menos movimiento, se quedan los colores pero no el
+   desplazamiento ni la animación de entrada. */
+@media (prefers-reduced-motion: reduce) {
+    .modal[open],
+    .modal[open]::backdrop {
+        animation: none;
+    }
+
+    .modal__close:hover,
+    .modal__close:active,
+    .modal__stat:hover,
+    .modal__poderes .card__poder:hover {
+        transform: none;
+    }
 }
 
 @keyframes purpleFire {
