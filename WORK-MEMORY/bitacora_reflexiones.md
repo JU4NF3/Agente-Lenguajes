@@ -36,3 +36,10 @@ información se viera de forma reducida, con animaciones pequeñas de hover en p
 características. Intenté que el fondo tuviera algo interactivo/animado, pero no quedó como
 quería y desistí de esa idea porque tampoco iba a ser muy visible con las cards como elemento
 principal.
+
+## 2026-09-17
+
+Me costó entender la función `mostrarTodo()` de `index.html` (Arrays) — en concreto qué hacía
+`lista.innerHTML = ""` antes del `forEach` y por qué se sumaba `(i + 1)` al recorrer el arreglo.
+También tenía duda de para qué servía `trim()` en los inputs. El resto del ejercicio de arrays
+(agregar, eliminar y buscar elementos) estuvo bien.
