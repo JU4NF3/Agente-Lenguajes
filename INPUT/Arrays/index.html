@@ -1,0 +1,55 @@
+<body>
+  <h2>Gestor de Frutas</h2>
+
+  <input type="text" id="campo" placeholder="Escribe una fruta...">
+  <button onclick="buscar()">Buscar</button>
+  <button onclick="mostrarTodo()">Mostrar todo</button>
+
+
+  <p id="resultado"></p>
+  <ul id="lista"></ul>
+
+  <script>
+    // Arreglo base que se recorre y consulta, no se modifica (sin push/pop/shift aquí)
+    let frutas = ["manzana","pera","uva","mango",
+                  "pina","fresa","melon","kiwi",
+                  "naranja","limon","papaya","banano"];
+
+    // Centraliza la escritura del mensaje en <p id="resultado">
+    function mostrarMensaje(texto) {
+      document.getElementById("resultado").textContent = texto;
+    }
+
+    // Lee y normaliza el input; devuelve null si está vacío (así buscar() puede cortar con "return")
+    function obtenerValor() {
+      let val = document.getElementById("campo").value.trim().toLowerCase();
+      if (val === "") {
+        mostrarMensaje("El campo no puede estar vacio.");
+        return null;
+      }
+      return val;
+    }
+
+    // indexOf devuelve -1 si el valor no está en el arreglo; por eso se compara contra -1
+    function buscar() {
+      let val = obtenerValor();
+      if (!val) return;
+      let indice = frutas.indexOf(val);
+      if (indice !== -1) {
+        mostrarMensaje("Encontrada en posicion " + indice + ".");
+      } else {
+        mostrarMensaje("No esta en la lista.");
+      }
+    }
+
+    // Reconstruye el <ul> desde cero para no duplicar <li> en cada click
+    function mostrarTodo() {
+      let lista = document.getElementById("lista");
+      lista.innerHTML = "";
+      frutas.forEach(function(fruta, i) {
+        lista.innerHTML += "<li>" + (i + 1) + ". " + fruta + "</li>";
+      });
+      mostrarMensaje("Lista actualizada — " + frutas.length + " frutas.");
+    }
+  </script>
+</body>
