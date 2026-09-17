@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Arrays</title>
+</head>
+<body>
+  <input type="text" id="input">
+  <button id="submitBtn">Submit</button>
+  <button id="button2">Eliminar</button>
+  <button id="button3" onclick="eliminarPrimero()">Eliminar Primero</button>
+  <button id="button4">Mostrar lista</button>
+  <button id="button5">Buscar</button>
+  <p id="resultado"></p>
+  <ul id="lista"></ul>
+
+  <script>
+    // Arreglo mutable: los botones lo modifican con unshift/pop/shift
+    let arr = ["labrador", "poodle", "bulldog", "beagle", "chihuahua", "pug", "husky", "dálmata"]
+
+    // Referencias a cada elemento del DOM, obtenidas una sola vez al cargar el script
+    const input = document.getElementById("input");
+    const submitBtn = document.getElementById("submitBtn");
+    const resultado = document.getElementById("resultado");
+    const button2 = document.getElementById("button2");
+    const button3 = document.getElementById("button3");
+    const button4 = document.getElementById("button4");
+    const button5 = document.getElementById("button5");
+    const lista = document.getElementById("lista");
+
+    // Submit: agrega el valor del input al INICIO del arreglo (unshift) y refresca el <ul>
+    submitBtn.addEventListener("click", function() {
+        console.log("input:", input.value.trim().toLowerCase());
+        resultado.textContent = "Valor Ingresado: "+ input.value.trim().toLowerCase();
+        //agregar el valor ingresado al arreglo
+        //arr.push(input.value.trim().toLowerCase());
+        //agregar el valor ingresado al arreglo al inicio
+        arr.unshift(input.value.trim().toLowerCase());
+        mostrarLista();
+    });
+
+    // Quita el ÚLTIMO elemento (pop) y avisa si el arreglo ya está vacío
+    function eliminarUltimo(){
+      if (arr.length > 0) {
+        let eliminado = arr.pop();
+        resultado.textContent = "Elemento eliminado: " + eliminado;
+      mostrarLista();}
+        else {
+        resultado.textContent = "El arreglo está vacío.";
+      }
+    }
+
+    button2.addEventListener("click", eliminarUltimo);
+
+    // Quita el PRIMER elemento (shift); mismo patrón que eliminarUltimo pero con shift en vez de pop
+    function eliminarPrimero(){
+      if (arr.length > 0) {
+        let eliminado = arr.shift();
+        resultado.textContent = "Elemento eliminado: " + eliminado;
+        mostrarLista();
+      } else {
+        resultado.textContent = "El arreglo está vacío.";
+      }
+    }
+
+    button3.addEventListener("click", eliminarPrimero);
+
+    // Repinta el <ul> desde cero: lo limpia y crea un <li> por cada elemento actual de arr
+    function mostrarLista(){
+      lista.innerHTML = "";
+      arr.forEach(function(item){
+        let li = document.createElement("li");
+        li.textContent = item;
+        lista.appendChild(li);
+      });
+    }
+
+    button4.addEventListener("click", mostrarLista);
+
+    // indexOf devuelve -1 si no encuentra el valor; por eso se compara contra -1, no contra null/undefined
+    function buscarElemento() {
+      let valorBuscado = input.value.trim().toLowerCase();
+      let indice = arr.indexOf(valorBuscado);
+      if (indice !== -1) {
+        resultado.textContent = "Elemento encontrado en la posicion: " + indice;
+      } else {
+        resultado.textContent = "Este elemento no está en el arreglo.";
+      }
+    }
+
+    button5.addEventListener("click", buscarElemento);
+
+  </script>
+</body>
+</html>
