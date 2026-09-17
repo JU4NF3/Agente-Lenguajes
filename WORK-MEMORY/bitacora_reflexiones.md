@@ -22,3 +22,17 @@ Aprendí un poco sobre media queries. El ejercicio que más me gustó fue hacer 
 carta — en LayoutIt se ve fácil y no profundizamos tanto en el código como tal, pero la misma
 página ya usa ciertas cosas que sé que se aplican en código real, así que me parece una buena
 forma de ir aprendiendo antes de escribirlo directamente a mano.
+
+## 2026-09-16
+
+Para el estilo de las cards de perritos le pedí a la IA que se basara en una card que ya
+habíamos hecho antes, la cual a su vez se basaba en un repo de Git de una carta con animaciones
+específicas — esa fue la animación que pedí. El hover que me dio la IA al principio estaba muy
+"rainbow", así que se lo modifiqué yo. Para el estilo base pedí que la imagen y sus
+características se vieran con jerarquía visual. La idea de fondo era una carta rara de perritos
+con poderes extraordinarios y divertidos, y le pedí a la IA que fuera creativa con el texto
+generativo de las características de cada perrito. También indiqué que al hacer click la
+información se viera de forma reducida, con animaciones pequeñas de hover en poderes y
+características. Intenté que el fondo tuviera algo interactivo/animado, pero no quedó como
+quería y desistí de esa idea porque tampoco iba a ser muy visible con las cards como elemento
+principal.
