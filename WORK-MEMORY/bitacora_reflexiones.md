@@ -43,3 +43,10 @@ Me costó entender la función `mostrarTodo()` de `index.html` (Arrays) — en c
 `lista.innerHTML = ""` antes del `forEach` y por qué se sumaba `(i + 1)` al recorrer el arreglo.
 También tenía duda de para qué servía `trim()` en los inputs. El resto del ejercicio de arrays
 (agregar, eliminar y buscar elementos) estuvo bien.
+
+## 2026-09-18
+
+Aprendimos sobre bases de datos y CRUD — estuvo bueno ver cómo se implementa eso en la práctica,
+armamos una gestión de datos (Objetos/Proyecto-1) con el CRUD aplicado. El computador se puso
+lento y eso complicó un poco el ritmo de la sesión. También terminamos la función de modificar
+elemento en Arrays, aunque no estoy seguro de que haya quedado del todo bien — igual estuvo bueno.
