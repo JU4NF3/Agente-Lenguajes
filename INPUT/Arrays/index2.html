@@ -11,6 +11,8 @@
   <button id="button3" onclick="eliminarPrimero()">Eliminar Primero</button>
   <button id="button4">Mostrar lista</button>
   <button id="button5">Buscar</button>
+  <button id="button6">Eliminarpornombre</button>
+  <button id="button7">Modificar</button>
   <p id="resultado"></p>
   <ul id="lista"></ul>
 
@@ -26,6 +28,8 @@
     const button3 = document.getElementById("button3");
     const button4 = document.getElementById("button4");
     const button5 = document.getElementById("button5");
+    const button6 = document.getElementById("button6");
+    const button7 = document.getElementById("button7");
     const lista = document.getElementById("lista");
 
     // Submit: agrega el valor del input al INICIO del arreglo (unshift) y refresca el <ul>
@@ -89,6 +93,54 @@
     }
 
     button5.addEventListener("click", buscarElemento);
+
+    function eliminarElemento(){
+      let valorBuscado = input.value.trim().toLowerCase();
+      if (valorBuscado === "") {
+        resultado.textContent = "Porfavor, ingrese un valor para eliminar. ";
+        return;
+      }
+      let indice = arr.indexOf(valorBuscado);
+      if (indice !== -1) {
+        resultado.textContent = "Elemento eliminado de la posición " + indice;
+        arr.splice(indice, 1);
+        mostrarLista();
+      }
+      else {
+        resultado.textContent = "Elemento no encontrado en el arreglo.";
+      
+      }
+    }
+    button6.addEventListener("click", eliminarElemento);
+
+    function modificarElemento() {
+      let valorBuscado = input.value.trim().toLowerCase();
+      if (valorBuscado === "") {
+        resultado.textContent = "Porfavor, ingrese un valor para modificar. ";
+        return;
+      }
+      let indice = arr.indexOf(valorBuscado);
+      if (indice !== -1) {
+        let nuevoValor = prompt("ingrese nuevo valor para reemplazar " + valorBuscado);
+        if (nuevoValor !== null && nuevoValor.trim() !== ""){
+          arr[indice] = nuevoValor.trim().toLowerCase();
+        }
+        else{
+          resultado.textContent = "No se ingreso ningun valor válido. "
+        }
+        mostrarLista();
+      } else{
+          resultado.textContent = "Elemento no encontrado en el arreglo. "
+          }
+      
+
+    }
+
+    button7.addEventListener("click", modificarElemento);
+
+
+    mostrarLista();
+
 
   </script>
 </body>

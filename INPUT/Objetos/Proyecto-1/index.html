@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- Sin esto el navegador asume el ancho de una pantalla de escritorio
+         por defecto y las media queries (los 3 breakpoints en style.css)
+         no se disparan bien en celular real. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Objetos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Da contexto antes de las cards: sin esto no queda claro qué es la
+         página con solo ver el grid. Va arriba del botón de modo oscuro. -->
+    <header class="intro">
+        <h1 class="intro__title">🐾 Perritos Coleccionables</h1>
+        <p class="intro__subtitle">
+            Estas son unas tarjetas coleccionables de perritos con poderes
+            extraordinarios y únicos. Diviértete viendo cada una de ellas y
+            conociéndolos a todos.
+        </p>
+    </header>
+
+    <!-- El click lo escucha index.js: agrega/quita la clase "dark-mode" en
+         <body>, y el CSS lee esa clase para cambiar las variables de color. -->
+    <button id="theme-toggle" class="theme-toggle" type="button">🌙 Modo oscuro</button>
+
+    <section class="galeria">
+        <!-- Grid que acomoda las 12 cards y las hace responsivas (ver
+             .card-container en style.css: auto-fit + minmax). -->
+        <!-- index.js llena este contenedor: por cada objeto del array
+             perritos clona #card-template, rellena los campos y lo agrega
+             acá. Vacío a propósito — el contenido ya no vive en el HTML. -->
+        <div class="card-container" id="card-container"></div>
+    </section>
+
+    <!-- El contenido de un <template> no se muestra ni se ejecuta hasta que
+         algo lo clona con JS (cardTemplate.content.cloneNode(true) en
+         index.js). Es la estructura de UNA card; los data-field="..." son
+         los "ganchos" que el JS usa con querySelector para saber dónde
+         poner cada propiedad del objeto perrito. -->
+    <template id="card-template">
+        <div class="card"> <!-- .card: solo da el "perspective" 3D, ver style.css -->
+            <div class="card__rotator"> <!-- caja visible; index.js le mueve
+                 --rotate-x/--rotate-y según la posición del mouse -->
+                <img class="card__image" data-field="imagen" src="" alt="">
+                <div class="card__header">
+                    <div>
+                        <h2 class="card__nombre" data-field="nombre"></h2>
+                        <p class="card__raza">
+                            <span data-field="raza"></span> · <span data-field="universo"></span>
+                        </p>
+                    </div>
+                    <span class="card__badge" data-field="badge"></span> <!-- Activo/Inactivo, según perrito.activo -->
+                </div>
+                <p class="card__description" data-field="description"></p>
+                <div class="card__stats">
+                    <div class="card__stat">
+                        <span class="card__stat-value" data-field="edad"></span>
+                        <span class="card__stat-label">Edad</span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__stat-value" data-field="altura"></span>
+                        <span class="card__stat-label">Altura</span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__stat-value" data-field="aura"></span>
+                        <span class="card__stat-label">Aura</span>
+                    </div>
+                </div>
+
+                <!-- Sección aparte de las stats para que quede claro que esto
+                     son habilidades, no un dato numérico más. index.js agrega
+                     acá un <span class="card__poder"> por cada elemento del
+                     array perrito.poderes. -->
+                <div class="card__poderes-section">
+                    <h3 class="card__poderes-title">Poderes</h3>
+                    <div class="card__poderes" data-field="poderes"></div>
+                </div>
+
+                <!-- Capas invisibles en reposo (opacity: var(--card-opacity), que
+                     empieza en 0). index.js las activa con pointermove: __shine
+                     pinta el arcoíris holográfico, __glare es el reflejo blanco
+                     que sigue al cursor. -->
+                <div class="card__shine"></div>
+                <div class="card__glare"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Ventana de detalle: es un <dialog> nativo del navegador. Solo hay UNA
+         en toda la página; index.js la rellena con los datos del perrito que
+         se haya clickeado y la abre con dialogElement.showModal(). -->
+    <dialog id="perrito-modal" class="modal">
+        <div class="modal__content">
+            <button class="modal__close" id="modal-close" type="button" aria-label="Cerrar">✕</button>
+            <img class="modal__image" id="modal-imagen" src="" alt="">
+            <div class="modal__header">
+                <h2 class="modal__nombre" id="modal-nombre"></h2>
+                <span class="modal__badge" id="modal-badge"></span>
+            </div>
+            <p class="modal__raza"><span id="modal-raza"></span> · <span id="modal-universo"></span></p>
+            <p class="modal__description" id="modal-description"></p>
+            <div class="modal__stats">
+                <div class="modal__stat">
+                    <span class="modal__stat-value" id="modal-edad"></span>
+                    <span class="modal__stat-label">Edad</span>
+                </div>
+                <div class="modal__stat">
+                    <span class="modal__stat-value" id="modal-altura"></span>
+                    <span class="modal__stat-label">Altura</span>
+                </div>
+                <div class="modal__stat">
+                    <span class="modal__stat-value" id="modal-aura"></span>
+                    <span class="modal__stat-label">Aura</span>
+                </div>
+            </div>
+            <div class="modal__poderes-section">
+                <h3 class="modal__poderes-title">Poderes</h3>
+                <div class="modal__poderes" id="modal-poderes"></div>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="data.js" defer></script>
+    <script src="index.js" defer></script>
+</body>
+</html>
