@@ -1,3 +1,6 @@
+/* Paleta del modo claro. Todo el CSS usa estas variables (var(--bg), etc.)
+   en vez de colores sueltos, así el modo oscuro solo tiene que redefinirlas
+   y todo cambia de color sin tocar ninguna otra regla. */
 :root {
     --bg: #eef1f8;
     --card-bg: #ffffff;
@@ -30,6 +33,9 @@
     --sunpillar-6: hsla(283, 100%, 73%, 0);
 }
 
+/* Modo oscuro: las mismas variables con otros valores. index.js agrega o
+   quita la clase dark-mode en <body> al pulsar el botón, y como body es
+   el ancestro de todo, las variables nuevas llegan a toda la página. */
 body.dark-mode {
     --bg: #1a1a2e;
     --card-bg: #223464;
@@ -43,10 +49,15 @@ body.dark-mode {
     --poder-text: #eaeaea;
 }
 
+/* Con border-box el padding y el borde cuentan DENTRO del width, así una
+   caja de width: 100% con padding no se sale de su contenedor. */
 * {
     box-sizing: border-box;
 }
 
+/* body es un grid de una sola columna centrada: el encabezado, el botón de
+   modo oscuro y la galería quedan apilados, con 16px de separación. La
+   transition suaviza el cambio de fondo y de color al alternar el tema. */
 body {
     position: relative;
     margin: 0;
@@ -63,6 +74,11 @@ body {
     transition: background 0.2s ease, color 0.2s ease;
 }
 
+/* Fondo de "fuego morado". Es un pseudo-elemento fijo, así no hace falta un
+   <div> extra en el HTML. Son 4 gradientes radiales difuminados con
+   filter: blur; z-index: -1 lo manda detrás de todo el contenido, e
+   inset: -10% lo hace más grande que la ventana para que, al moverse con
+   la animación purpleFire (al final del archivo), no se vean sus bordes. */
 body::before {
     content: "";
     position: fixed;
@@ -77,6 +93,8 @@ body::before {
     animation: purpleFire 6s ease-in-out infinite alternate;
 }
 
+/* Encabezado de index.html (título + subtítulo). El max-width evita líneas
+   larguísimas de texto en pantallas anchas. */
 .intro {
     max-width: 560px;
     padding: 0 16px;
@@ -95,6 +113,9 @@ body::before {
     color: var(--text-muted);
 }
 
+/* Botón de modo oscuro/claro, en forma de píldora (border-radius: 999px
+   redondea del todo sin importar el alto). Solo define el aspecto; el
+   cambio de tema lo hace index.js. */
 .theme-toggle {
     justify-self: center;
     padding: 8px 16px;
@@ -106,6 +127,7 @@ body::before {
     cursor: pointer;
 }
 
+/* Contenedor de la galería: ocupa todo el ancho y centra el grid de cards. */
 .galeria {
     width: 100%;
     display: flex;
@@ -113,6 +135,10 @@ body::before {
     padding: 0 16px;
 }
 
+/* Grid responsivo de cards: repeat(auto-fit, minmax(260px, 1fr)) mete tantas
+   columnas de al menos 260px como quepan en el ancho disponible, y las
+   estira para repartir el espacio sobrante. Así pasa de 1 a 2 a 3 columnas
+   sin escribir media queries para eso. */
 .card-container {
     width: 100%;
     max-width: 1300px;
@@ -122,6 +148,9 @@ body::before {
     justify-items: center;
 }
 
+/* Envoltorio de cada card. Solo define el tamaño y la perspective: sin ella,
+   la inclinación de .card__rotator (su hijo) se vería plana en vez de 3D.
+   cursor: pointer avisa que al hacer click se abre la ventana de detalle. */
 .card {
     width: 100%;
     max-width: 320px;
@@ -129,6 +158,12 @@ body::before {
     cursor: pointer;
 }
 
+/* La caja visible de la card, la que se inclina. Las filas del grid
+   (imagen, header, descripción, stats) dejan que la descripción (1fr) se
+   estire, así las cards de una misma fila quedan del mismo alto. Ojo: los
+   nombres del transform están cruzados a propósito: mover el mouse en
+   horizontal (--rotate-x) gira la card alrededor del eje Y, y en vertical
+   (--rotate-y) alrededor del eje X. */
 .card__rotator {
     position: relative;
     display: grid;
@@ -197,12 +232,16 @@ body::before {
     }
 }
 
+/* object-fit: cover recorta la foto para llenar el espacio sin deformarla.
+   La altura cambia según el breakpoint (más abajo en el archivo). */
 .card__image {
     width: 100%;
     height: 200px;
     object-fit: cover;
 }
 
+/* Nombre y raza a la izquierda (1fr, toma el espacio que sobra) y el badge
+   a la derecha (auto, tan ancho como su contenido). */
 .card__header {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -221,6 +260,8 @@ body::before {
     color: var(--text-muted);
 }
 
+/* Pastilla "Activo/Inactivo". white-space: nowrap evita que el texto se
+   parta en dos líneas. gestion.js también la usa en la ficha de Leer. */
 .card__badge {
     background: var(--badge-bg);
     color: var(--badge-text);
@@ -238,6 +279,8 @@ body::before {
     color: var(--text-muted);
 }
 
+/* Las stats (edad, altura, aura) en 2 columnas; en móvil pasan a 1 (ver el
+   breakpoint 1 más abajo). */
 .card__stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -258,6 +301,8 @@ body::before {
     color: var(--text-muted);
 }
 
+/* Una caja de stat: valor grande + etiqueta chica. gestion.js la reutiliza
+   en la ficha de Leer y Eliminar. */
 .card__stat {
     background: var(--stat-bg);
     border-radius: 10px;
@@ -287,6 +332,7 @@ body::before {
     gap: 6px;
 }
 
+/* Chip de UN poder. Lo usan las cards, el modal y las fichas de gestion.js. */
 .card__poder {
     background: var(--poder-bg);
     color: var(--poder-text);
@@ -538,6 +584,155 @@ body::before {
     align-items: center;
     gap: 6px;
     width: auto;
+}
+
+/* Mensaje de error del formulario de Crear (nombre duplicado). Ocupa el
+   ancho completo del grid, igual que el botón de enviar. */
+.form__error {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5484d;
+    background: rgba(229, 72, 77, 0.12);
+    color: var(--text);
+    font-size: 0.85rem;
+}
+
+/* El form de "Leer" solo tiene un campo, así que una columna alcanza y el
+   resultado queda pegado justo debajo. */
+.form--buscar {
+    grid-template-columns: minmax(0, 360px);
+    margin-bottom: 20px;
+}
+
+.resultado__vacio {
+    margin: 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--stat-bg);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Ficha del perrito encontrado en "Leer": imagen a la izquierda y datos a
+   la derecha; en móvil se apilan. Reutiliza .card__stat, .card__poder y
+   .card__badge para no duplicar estilos. */
+.ficha {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) 1fr;
+    gap: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.ficha__imagen {
+    width: 100%;
+    height: 100%;
+    min-height: 220px;
+    object-fit: cover;
+}
+
+.ficha__cuerpo {
+    padding: 16px 16px 16px 0;
+}
+
+.ficha__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ficha__nombre {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.ficha__meta {
+    margin: 4px 0 0 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.ficha__description {
+    margin: 12px 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.ficha__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+/* Zona de botones de "Eliminar": el botón inicial y, después, la pregunta
+   de confirmación con "Sí, eliminar" / "Cancelar". */
+.acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.acciones__pregunta {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.boton {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.boton:hover {
+    transform: translateY(-2px);
+}
+
+.boton:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 2px;
+}
+
+.boton--peligro {
+    background: #e5484d;
+    color: #ffffff;
+}
+
+.boton--secundario {
+    background: var(--stat-bg);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .boton:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .ficha {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .ficha__cuerpo {
+        padding: 16px;
+    }
 }
 
 /* Tabla de "Mostrar todos": son 10 columnas, así que en pantallas chicas
@@ -825,6 +1020,10 @@ body::before {
     }
 }
 
+/* Animación del fondo (body::before): en cada paso mueve un poco los 4
+   gradientes y cambia la escala, la altura y la opacidad, para simular
+   llamas que se agitan. Se usa con "alternate infinite": al llegar al 100%
+   vuelve hacia atrás en lugar de saltar al inicio. */
 @keyframes purpleFire {
     0% {
         background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
