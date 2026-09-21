@@ -23,11 +23,14 @@
             </nav>
         </aside>
 
-        <!-- Vacío a propósito: gestion.js todavía no renderiza nada acá,
-             cada acción del sidebar va a llenar este contenedor. -->
+        <!-- Vacío en el HTML a propósito: gestion.js lo llena al cargar
+             (con "Mostrar todos") y cada acción del sidebar lo vuelve a llenar. -->
         <main class="gestion-main" id="gestion-content"></main>
     </div>
 
+    <!-- El orden importa: data.js define `perritos` y capitalize(), y
+         gestion.js los usa. defer respeta el orden en que aparecen acá y
+         además espera a que el HTML esté armado antes de ejecutarlos. -->
     <script src="data.js" defer></script>
     <script src="gestion.js" defer></script>
 </body>

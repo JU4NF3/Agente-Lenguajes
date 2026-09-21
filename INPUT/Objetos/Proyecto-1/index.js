@@ -19,14 +19,6 @@ function clamp(value, min = 0, max = 100) {
     return Math.min(Math.max(value, min), max);
 }
 
-// Pone en mayúscula solo la primera letra de un texto (el resto queda
-// igual). Se usa al mostrar los poderes, porque en el array de datos están
-// escritos en minúscula ("dormir", "comer mucho") pero en pantalla se ven
-// mejor como "Dormir", "Comer mucho".
-function capitalize(text) {
-    return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 // Traduce un valor de un rango [fromMin, fromMax] a otro [toMin, toMax].
 // Ejemplo: adjust(50, 0, 100, 30, 70) da 50 (el punto medio de ambos rangos).
 // Se usa para que el brillo (--background-x/y) se mueva menos que el mouse.
@@ -114,7 +106,7 @@ function renderPerrito(perrito) {
     perrito.poderes.forEach((poder) => {
         const poderElement = document.createElement("span");
         poderElement.className = "card__poder";
-        poderElement.textContent = capitalize(poder);
+        poderElement.textContent = poder;
         poderesElement.appendChild(poderElement);
     });
 
@@ -142,6 +134,10 @@ const modalAuraElement = document.getElementById("modal-aura");
 const modalPoderesElement = document.getElementById("modal-poderes");
 const modalCloseElement = document.getElementById("modal-close");
 
+// Rellena el <dialog> único con los datos de UN perrito y lo abre. Como se
+// reutiliza para cualquier perrito, hay que limpiar lo del anterior: los
+// poderes se agregan con appendChild, así que sin vaciar el contenedor se
+// irían acumulando en cada apertura.
 function openModal(perrito) {
     modalImagenElement.src = perrito.imagen;
     modalImagenElement.alt = perrito.nombre;
@@ -158,7 +154,7 @@ function openModal(perrito) {
     perrito.poderes.forEach((poder) => {
         const poderElement = document.createElement("span");
         poderElement.className = "card__poder";
-        poderElement.textContent = capitalize(poder);
+        poderElement.textContent = poder;
         modalPoderesElement.appendChild(poderElement);
     });
 

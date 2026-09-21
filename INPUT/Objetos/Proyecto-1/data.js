@@ -1,7 +1,29 @@
+// Datos compartidos por las dos páginas: index.html (galería de cards) y
+// gestion.html (CRUD). Las dos cargan este archivo ANTES que su propio
+// script (ver el orden de los <script defer>), así que `perritos` y
+// capitalize() ya existen cuando index.js y gestion.js arrancan.
+//
+// Cada perrito es un objeto con estos campos:
+//   nombre       string    identificador: gestion.js no deja repetirlo (sin
+//                          distinguir mayúsculas ni espacios sobrantes)
+//   raza         string
+//   universo     string    código del universo de origen (ej. "Perroid004")
+//   imagen       string    URL de la foto
+//   description  string    historia de cómo consiguió sus poderes
+//   edad         number    en años
+//   altura       number    en metros (se muestra como "0.38m")
+//   aura         number    nivel de poder
+//   activo       boolean   true se muestra "Activo", false "Inactivo"
+//   poderes      string[]  lista de tamaño variable; cada poder empieza con
+//                          mayúscula (ver capitalize abajo)
+//
+// Se declara con `let`, pero el código solo modifica el CONTENIDO del array
+// (push, unshift, splice, perritos[i] = ...) y nunca reasigna la variable.
+// Los cambios viven solo en memoria: al recargar la página se pierden.
 let perritos = [
     {
         nombre: "Leo",
-        poderes: ["dormir", "comer mucho", "Mega Ladrido", "Salto De Fuego"],
+        poderes: ["Dormir", "Comer mucho", "Mega Ladrido", "Salto De Fuego"],
         description: "Leo, perro san bernardo. Un pancake radioactivo lo mordió y se convirtió en un perro con poderes",
         raza: "Shih-Tzu",
         imagen: "https://placedog.net/500/280?id=1",
@@ -13,7 +35,7 @@ let perritos = [
     },
     {
         nombre: "Mochi",
-        poderes: ["teletransportar juguetes", "orejas radar"],
+        poderes: ["Teletransportar juguetes", "Orejas radar"],
         description: "Mochi lamió un enchufe con sabor a matcha y desde entonces teletransporta cualquier objeto del tamaño de una pelota",
         raza: "Golden Retriever",
         imagen: "https://placedog.net/500/280?id=2",
@@ -25,7 +47,7 @@ let perritos = [
     },
     {
         nombre: "Rocko",
-        poderes: ["congelar el tiempo (3s)", "siesta táctica"],
+        poderes: ["Congelar el tiempo (3s)", "Siesta táctica"],
         description: "Rocko se tragó una batería de reloj mientras dormía la siesta y ahora puede congelar el tiempo por 3 segundos exactos",
         raza: "Golden Retriever",
         imagen: "https://placedog.net/500/280?id=3",
@@ -37,7 +59,7 @@ let perritos = [
     },
     {
         nombre: "Nube",
-        poderes: ["electricidad estática", "pelaje escudo"],
+        poderes: ["Electricidad estática", "Pelaje escudo"],
         description: "Nube durmió una noche entera bajo una antena de wifi rota y despertó controlando la electricidad estática",
         raza: "Labrador",
         imagen: "https://placedog.net/500/280?id=4",
@@ -49,7 +71,7 @@ let perritos = [
     },
     {
         nombre: "Trueno",
-        poderes: ["rayos con la cola", "ladrido sónico"],
+        poderes: ["Rayos con la cola", "Ladrido sónico"],
         description: "Trueno mordió un cable pelado en plena tormenta y ahora genera rayos cada vez que mueve la cola",
         raza: "Lobo Siberiano",
         imagen: "https://placedog.net/500/280?id=5",
@@ -61,7 +83,7 @@ let perritos = [
     },
     {
         nombre: "Pixel",
-        poderes: ["pausar la realidad", "vidas extra"],
+        poderes: ["Pausar la realidad", "Vidas extra"],
         description: "Pixel se cayó dentro de una consola retro abierta y ahora puede pausar la realidad como si fuera un videojuego",
         raza: "Weimaraner",
         imagen: "https://placedog.net/500/280?id=6",
@@ -73,7 +95,7 @@ let perritos = [
     },
     {
         nombre: "Canela",
-        poderes: ["escupir fuego al estornudar", "aliento picante"],
+        poderes: ["Escupir fuego al estornudar", "Aliento picante"],
         description: "Canela se comió un chile fantasma por accidente y ahora escupe fuego cada vez que estornuda",
         raza: "Schnauzer",
         imagen: "https://placedog.net/500/280?id=7",
@@ -85,7 +107,7 @@ let perritos = [
     },
     {
         nombre: "Bruno",
-        poderes: ["invisibilidad al bostezar", "olfato fantasma"],
+        poderes: ["Invisibilidad al bostezar", "Olfato fantasma"],
         description: "Bruno encontró un anillo enterrado en el jardín y ahora se vuelve invisible cada vez que bosteza",
         raza: "Border Collie",
         imagen: "https://placedog.net/500/280?id=8",
@@ -97,7 +119,7 @@ let perritos = [
     },
     {
         nombre: "Luna",
-        poderes: ["controlar las mareas", "aullido eclipse"],
+        poderes: ["Controlar las mareas", "Aullido eclipse"],
         description: "Luna aulló tan fuerte durante un eclipse que absorbió parte de los poderes de la luna, ahora controla las mareas",
         raza: "Golden Retriever",
         imagen: "https://placedog.net/500/280?id=9",
@@ -109,7 +131,7 @@ let perritos = [
     },
     {
         nombre: "Tofu",
-        poderes: ["rebote infinito", "esquiva ataques"],
+        poderes: ["Rebote infinito", "Esquiva ataques"],
         description: "Tofu cayó sin querer en una fuente de gelatina radioactiva del laboratorio del vecino y ahora rebota como resorte sin cansarse",
         raza: "Braco Alemán",
         imagen: "https://placedog.net/500/280?id=10",
@@ -121,7 +143,7 @@ let perritos = [
     },
     {
         nombre: "Max",
-        poderes: ["clonarse temporalmente", "velocidad x2"],
+        poderes: ["Clonarse temporalmente", "Velocidad x2"],
         description: "Max persiguió una ardilla directo hacia un portal dimensional en el parque y ahora puede clonarse por un rato",
         raza: "Schnauzer",
         imagen: "https://placedog.net/500/280?id=11",
@@ -133,7 +155,7 @@ let perritos = [
     },
     {
         nombre: "Kiwi",
-        poderes: ["estirarse como chicle", "colarse por rendijas"],
+        poderes: ["Estirarse como chicle", "Colarse por rendijas"],
         description: "Kiwi olfateó un frasco de pegamento extraterrestre caído de un satélite y ahora estira su cuerpo como si fuera chicle",
         raza: "Pastor Alemán",
         imagen: "https://placedog.net/500/280?id=12",
@@ -144,3 +166,12 @@ let perritos = [
         edad: 3,
     },
 ];
+
+// Pone en mayúscula solo la primera letra de un texto (el resto queda
+// igual): "saltar alto" -> "Saltar alto". Vive acá, junto a los datos, para
+// que haya UNA sola versión: gestion.js la usa al guardar los poderes que se
+// escriben en los formularios, y así quedan con el mismo formato que los de
+// este archivo.
+function capitalize(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
