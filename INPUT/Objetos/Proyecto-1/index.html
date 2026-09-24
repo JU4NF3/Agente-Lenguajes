@@ -26,6 +26,20 @@
     <button id="theme-toggle" class="theme-toggle" type="button">🌙 Modo oscuro</button>
 
     <section class="galeria">
+        <!-- Filtro por estado. data-filtro es el gancho que usa index.js
+             para saber qué botón se clickeó (mismo patrón que data-action
+             en gestion.html). aria-pressed le dice a un lector de pantalla
+             cuál está elegido; index.js lo actualiza junto con la clase
+             .active. El contador lo escribe index.js al filtrar. -->
+        <div class="filtros">
+            <div class="filtros__botones" role="group" aria-label="Filtrar perritos por estado">
+                <button class="filtros__boton active" type="button" data-filtro="todos" aria-pressed="true">Todos</button>
+                <button class="filtros__boton" type="button" data-filtro="activos" aria-pressed="false">Activos</button>
+                <button class="filtros__boton" type="button" data-filtro="inactivos" aria-pressed="false">Inactivos</button>
+            </div>
+            <p class="filtros__contador" id="filtros-contador" aria-live="polite"></p>
+        </div>
+
         <!-- Grid que acomoda las 12 cards y las hace responsivas (ver
              .card-container en style.css: auto-fit + minmax). -->
         <!-- index.js llena este contenedor: por cada objeto del array

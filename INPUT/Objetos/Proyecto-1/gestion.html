@@ -8,30 +8,45 @@
 </head>
 <body>
 
-    <div class="gestion-layout">
-        <!-- Nav lateral con los 5 procesos. data-action es el gancho que usa
-             gestion.js para saber qué ítem se clickeó (y más adelante, qué
-             lógica CRUD disparar). -->
-        <aside class="sidebar">
-            <h2 class="sidebar__title">Gestión</h2>
-            <nav class="sidebar__nav">
-                <button class="sidebar__item" type="button" data-action="mostrar-todos">📋 Mostrar todos</button>
-                <button class="sidebar__item" type="button" data-action="crear">➕ Crear</button>
-                <button class="sidebar__item" type="button" data-action="leer">🔍 Leer</button>
-                <button class="sidebar__item" type="button" data-action="actualizar">✏️ Actualizar</button>
-                <button class="sidebar__item" type="button" data-action="eliminar">🗑️ Eliminar</button>
-            </nav>
-        </aside>
+    <!-- Lo ÚNICO que trae el HTML es el login. El panel CRUD (sidebar +
+         contenido) no está escrito acá: gestion.js lo crea con
+         iniciarGestion(), que solo se llama si el usuario y la contraseña
+         son correctos. Ese panel reemplaza a esta sección. -->
+    <section class="login" id="login">
+        <header class="login__header">
+            <!-- aria-hidden: el emoji es decorativo, un lector de pantalla
+                 no necesita leerlo -->
+            <span class="login__icon" aria-hidden="true">🐾</span>
+            <h1 class="login__title">Acceso de administración</h1>
+            <p class="login__subtitle">Ingresa para gestionar los perritos</p>
+        </header>
+        <form class="form login__form" id="form-login">
+            <label class="form__field">
+                <span>Usuario</span>
+                <input type="text" name="usuario" autocomplete="username" required>
+            </label>
+            <label class="form__field">
+                <span>Contraseña</span>
+                <input type="password" name="contrasena" autocomplete="current-password" required>
+            </label>
+            <p class="form__error" id="form-login-error" role="alert" hidden></p>
+            <button class="form__submit" type="submit">Entrar</button>
+        </form>
+        <a class="login__volver" href="index.html">← Volver a la galería</a>
+    </section>
 
-        <!-- Vacío en el HTML a propósito: gestion.js lo llena al cargar
-             (con "Mostrar todos") y cada acción del sidebar lo vuelve a llenar. -->
-        <main class="gestion-main" id="gestion-content"></main>
-    </div>
-
-    <!-- El orden importa: data.js define `perritos` y capitalize(), y
-         gestion.js los usa. defer respeta el orden en que aparecen acá y
-         además espera a que el HTML esté armado antes de ejecutarlos. -->
+    <!-- El orden importa: defer los ejecuta en el orden en que aparecen acá
+         (y después de que el HTML esté armado).
+         - data.js define crearPerritos() y capitalize().
+         - credenciales.js define `usuario` y `password` (el admin).
+         - login.js define verificarLogin(), que los compara (usa lo anterior).
+         - gestion.js va al final porque usa todo lo anterior. Adentro tiene
+           el formulario de login y el CRUD, encerrados en una IIFE para que
+           la consola no pueda tocarlos (ver el comentario al inicio de
+           gestion.js). -->
     <script src="data.js" defer></script>
+    <script src="credenciales.js" defer></script>
+    <script src="login.js" defer></script>
     <script src="gestion.js" defer></script>
 </body>
 </html>
