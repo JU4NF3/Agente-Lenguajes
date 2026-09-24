@@ -50,3 +50,14 @@ Aprendimos sobre bases de datos y CRUD — estuvo bueno ver cómo se implementa 
 armamos una gestión de datos (Objetos/Proyecto-1) con el CRUD aplicado. El computador se puso
 lento y eso complicó un poco el ritmo de la sesión. También terminamos la función de modificar
 elemento en Arrays, aunque no estoy seguro de que haya quedado del todo bien — igual estuvo bueno.
+
+## 2026-09-24
+
+Me gustó mucho la parte de ciberseguridad, porque es algo que me gusta bastante: verificar
+desde la consola cómo se podía saltar el login e inyectar o borrar perritos, enfrentándonos a
+casos que de verdad son posibles dentro de nuestra página, y después repararlo (closure/IIFE).
+Aprendí que testear la seguridad es muy importante, y algunos consejos sobre cómo nombrar las
+cosas relacionadas con contraseñas (ej. que una variable local no se llame igual que la global
+de las credenciales, por el shadowing). También me gustó el filtro de Activos/Inactivos en el
+index para ver mejor las cards, y los ids únicos para que no se repitan, que es más de lo que
+se usa en bases de datos.
