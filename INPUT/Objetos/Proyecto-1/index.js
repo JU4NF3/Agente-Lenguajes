@@ -1,5 +1,7 @@
-// El array `perritos` ya no vive acá: se declara en data.js, que se carga
-// antes que este script (ver el orden de los <script defer> en index.html).
+// Los datos viven en data.js, que se carga antes que este script (ver el
+// orden de los <script defer> en index.html). crearPerritos() devuelve una
+// copia nueva del array; la galería solo lee los datos, no los modifica.
+const perritos = crearPerritos();
 
 // Practicando acceso a arrays/objetos: .length cuenta elementos, [n] accede
 // por índice (empieza en 0), y .map transforma cada elemento del array.
@@ -115,8 +117,54 @@ function renderPerrito(perrito) {
     cardContainer.appendChild(cardElement);
 }
 
-// Genera las 12 cards, una por cada perrito del array.
-perritos.forEach(renderPerrito);
+// Pinta en el grid UNA card por cada objeto de listaObjetos. Primero vacía
+// el grid: como renderPerrito agrega con appendChild, sin esta limpieza
+// llamar a la función dos veces dejaría las cards duplicadas (mismo motivo
+// por el que openModal vacía los poderes antes de rellenarlos). Recibir la
+// lista como parámetro, en vez de usar `perritos` directo, permite pintar
+// cualquier array: por ejemplo, uno filtrado o reordenado.
+function renderizarObjetos(listaObjetos) {
+    cardContainer.innerHTML = "";
+    listaObjetos.forEach(renderPerrito);
+}
+
+// Filtro por estado (botones Todos / Activos / Inactivos de index.html).
+const filtroBotones = document.querySelectorAll(".filtros__boton");
+const filtrosContador = document.getElementById("filtros-contador");
+
+// Arma la lista según el filtro elegido y se la pasa a renderizarObjetos,
+// que ya se encarga de vaciar el grid y pintar. filter NO modifica
+// `perritos`: devuelve un array NUEVO solo con los que cumplen la condición,
+// así que al volver a "Todos" el array original sigue completo.
+function aplicarFiltro(filtro) {
+    let listaFiltrada = perritos;
+    if (filtro === "activos") {
+        listaFiltrada = perritos.filter((perrito) => perrito.activo);
+    } else if (filtro === "inactivos") {
+        listaFiltrada = perritos.filter((perrito) => !perrito.activo);
+    }
+
+    renderizarObjetos(listaFiltrada);
+
+    // Resalta solo el botón elegido (toggle con true/false, igual que el
+    // sidebar de gestion.js) y sincroniza aria-pressed para lectores de pantalla.
+    filtroBotones.forEach((boton) => {
+        const estaElegido = boton.dataset.filtro === filtro;
+        boton.classList.toggle("active", estaElegido);
+        boton.setAttribute("aria-pressed", estaElegido);
+    });
+
+    filtrosContador.textContent = `Mostrando ${listaFiltrada.length} de ${perritos.length}`;
+}
+
+// Un solo listener por botón: el data-filtro le dice a aplicarFiltro qué hacer.
+filtroBotones.forEach((boton) => {
+    boton.addEventListener("click", () => aplicarFiltro(boton.dataset.filtro));
+});
+
+// Primera pintada: "Todos" llama a renderizarObjetos(perritos) por dentro y
+// además escribe el contador y marca el botón.
+aplicarFiltro("todos");
 
 // Ventana de detalle: hay un solo <dialog> en el HTML, se reutiliza para
 // cualquier perrito que se clickee (por eso acá SÍ usamos ids, a diferencia

@@ -127,12 +127,72 @@ body::before {
     cursor: pointer;
 }
 
-/* Contenedor de la galería: ocupa todo el ancho y centra el grid de cards. */
+/* Contenedor de la galería: ocupa todo el ancho y apila en columna la barra
+   de filtros y el grid de cards, los dos centrados. */
 .galeria {
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     padding: 0 16px;
+}
+
+/* Barra de filtros: mismo ancho máximo que el grid, así los botones quedan
+   alineados con el borde de las cards. flex-wrap deja que el contador baje
+   a otra línea en pantallas angostas. */
+.filtros {
+    width: 100%;
+    max-width: 1300px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Los 3 botones van juntos dentro de una "píldora" (control segmentado). */
+.filtros__botones {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+}
+
+.filtros__boton {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.filtros__boton:hover {
+    background: var(--stat-bg);
+}
+
+/* Botón elegido: mismos colores que los badges, así funciona en modo claro
+   y oscuro sin reglas extra (las variables cambian solas con .dark-mode). */
+.filtros__boton.active {
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    font-weight: bold;
+}
+
+.filtros__boton:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 2px;
+}
+
+.filtros__contador {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
 }
 
 /* Grid responsivo de cards: repeat(auto-fit, minmax(260px, 1fr)) mete tantas
@@ -604,6 +664,82 @@ body::before {
 .form--buscar {
     grid-template-columns: minmax(0, 360px);
     margin-bottom: 20px;
+}
+
+/* Tarjeta de login de gestion.html. Mismo aspecto que .sidebar y
+   .gestion-main (fondo, borde, radio) para que se sienta parte de la misma
+   página. width: calc(100% - 32px) deja 16px de aire a cada lado en móvil.
+   IMPORTANTE: este bloque va DESPUÉS de .form a propósito. .form y
+   .login__form tienen la misma especificidad (una clase cada una), y en un
+   empate gana la regla que aparece más abajo en el archivo. Si .login__form
+   fuera antes, .form le volvería a poner 2 columnas. */
+.login {
+    width: calc(100% - 32px);
+    max-width: 380px;
+    margin-top: 12vh;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 20px 50px rgba(60, 9, 108, 0.18);
+}
+
+.login__header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* Círculo con el emoji: mismo color que los badges para que se reconozca
+   como parte del sitio de los perritos. */
+.login__icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: var(--badge-bg);
+    font-size: 1.6rem;
+}
+
+.login__title {
+    margin: 0 0 6px 0;
+    font-size: 1.3rem;
+}
+
+.login__subtitle {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* .form usa 2 columnas; el login tiene solo 2 campos, así que van apilados. */
+.login__form {
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.login__form .form__field input {
+    padding: 10px 12px;
+}
+
+/* El botón ocupa todo el ancho de la tarjeta, como en cualquier login. */
+.login__form .form__submit {
+    justify-self: stretch;
+    margin-top: 4px;
+    padding: 12px 20px;
+}
+
+.login__volver {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.login__volver:hover {
+    color: var(--text);
 }
 
 .resultado__vacio {
