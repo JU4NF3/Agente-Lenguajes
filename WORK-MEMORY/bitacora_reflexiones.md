@@ -61,3 +61,15 @@ cosas relacionadas con contraseñas (ej. que una variable local no se llame igua
 de las credenciales, por el shadowing). También me gustó el filtro de Activos/Inactivos en el
 index para ver mejor las cards, y los ids únicos para que no se repitan, que es más de lo que
 se usa en bases de datos.
+
+## 2026-09-25
+
+Vimos regex (expresiones regulares): son patrones específicos de lo que acepta cada campo y
+sirven para validar datos. También vimos `filter` y `map` para trabajar con arrays de objetos:
+`filter` para filtrar, y `map` para armar una lista nueva — `map` no lo entendí del todo bien,
+pero igual estuvo genial. En Proyecto-1 (perritos) hicimos un login validado con regex y un
+filtro flotante para las cartas. Por último partimos de un CodePen del profe con un juego de
+flip cards, que Claude interpretó y adaptó a nuestras cartas; me gustó mucho porque le fui
+dando parámetros adicionales que perfeccionaron el juego (puntaje por tiempo, ranking,
+intentos). Además lo conectamos con el login: registro de usuarios y guardado de sus datos y
+de sus partidas en JSON. La clase me gustó bastante.
