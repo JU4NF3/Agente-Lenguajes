@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter y Map</title>
+</head>
+<body>
+    <h1>Filter y Map</h1>
+
+    <!-- Espacio donde index.js puede pintar resultados. -->
+    <main id="resultado"></main>
+
+    <!-- defer: el script se descarga en paralelo pero se ejecuta DESPUÉS de
+         que el navegador termina de leer todo el HTML, así cuando index.js
+         busca #resultado con getElementById, ya existe. -->
+    <script src="index.js" defer></script>
+</body>
+</html>
