@@ -26,17 +26,37 @@
     <button id="theme-toggle" class="theme-toggle" type="button">🌙 Modo oscuro</button>
 
     <section class="galeria">
-        <!-- Filtro por estado. data-filtro es el gancho que usa index.js
-             para saber qué botón se clickeó (mismo patrón que data-action
-             en gestion.html). aria-pressed le dice a un lector de pantalla
-             cuál está elegido; index.js lo actualiza junto con la clase
-             .active. El contador lo escribe index.js al filtrar. -->
+        <!-- Menú desplegable de filtros. Usa la API popover nativa:
+             popovertarget="filtros-panel" conecta el botón con el panel, y el
+             navegador se encarga solo de abrirlo/cerrarlo al hacer click, de
+             cerrarlo con Escape o con un click afuera, y de actualizar
+             aria-expanded en el botón. No hace falta JS para eso.
+             Los <select> NO se escriben acá: index.js los genera a partir
+             del array filtrosConfig (uno por filtro), así para agregar un
+             filtro nuevo solo se toca ese array. El número dentro del botón
+             (cuántos filtros hay activos) y el contador también los escribe
+             index.js. -->
+        <!-- Filtro por estado (los 3 botones). data-filtro es el gancho que
+             usa index.js para saber qué botón se clickeó (mismo patrón que
+             data-action en gestion.html). aria-pressed le dice a un lector de
+             pantalla cuál está elegido; index.js lo actualiza junto con la
+             clase .active. -->
         <div class="filtros">
-            <div class="filtros__botones" role="group" aria-label="Filtrar perritos por estado">
-                <button class="filtros__boton active" type="button" data-filtro="todos" aria-pressed="true">Todos</button>
-                <button class="filtros__boton" type="button" data-filtro="activos" aria-pressed="false">Activos</button>
-                <button class="filtros__boton" type="button" data-filtro="inactivos" aria-pressed="false">Inactivos</button>
+            <div class="filtros__controles">
+                <div class="filtros__botones" role="group" aria-label="Filtrar perritos por estado">
+                    <button class="filtros__boton active" type="button" data-filtro="todos" aria-pressed="true">Todos</button>
+                    <button class="filtros__boton" type="button" data-filtro="activos" aria-pressed="false">Activos</button>
+                    <button class="filtros__boton" type="button" data-filtro="inactivos" aria-pressed="false">Inactivos</button>
+                </div>
+                <button class="filtros__toggle" id="filtros-toggle" type="button" popovertarget="filtros-panel">
+                    🔽 Filtros
+                    <span class="filtros__toggle-contador" id="filtros-toggle-contador" hidden></span>
+                </button>
             </div>
+            <form class="filtros__panel" id="filtros-panel" popover aria-label="Filtros de perritos">
+                <div class="filtros__campos" id="filtros-campos"></div>
+                <button class="filtros__limpiar" id="filtros-limpiar" type="button">Limpiar filtros</button>
+            </form>
             <p class="filtros__contador" id="filtros-contador" aria-live="polite"></p>
         </div>
 
@@ -47,6 +67,21 @@
              acá. Vacío a propósito — el contenido ya no vive en el HTML. -->
         <div class="card-container" id="card-container"></div>
     </section>
+
+    <!-- Slider flotante de Aura mínima: se muestran solo los perritos con
+         aura >= el valor elegido. Es un <input type="range"> nativo; lo que
+         lo pone vertical es el CSS (writing-mode en .aura-filtro__slider).
+         min, max y value NO se escriben acá: index.js los calcula a partir
+         de los datos, así si cambia el aura de algún perrito el slider se
+         ajusta solo. <output> es la etiqueta HTML pensada para mostrar el
+         resultado de un control; index.js escribe ahí el valor actual. -->
+    <aside class="aura-filtro" aria-label="Filtrar perritos por aura">
+        <label class="aura-filtro__titulo" for="aura-slider">⚡ Aura mínima</label>
+        <output class="aura-filtro__valor" id="aura-valor" for="aura-slider"></output>
+        <span class="aura-filtro__limite" id="aura-max"></span>
+        <input class="aura-filtro__slider" id="aura-slider" type="range" step="100">
+        <span class="aura-filtro__limite" id="aura-min"></span>
+    </aside>
 
     <!-- El contenido de un <template> no se muestra ni se ejecuta hasta que
          algo lo clona con JS (cardTemplate.content.cloneNode(true) en

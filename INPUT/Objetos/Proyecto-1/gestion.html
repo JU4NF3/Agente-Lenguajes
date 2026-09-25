@@ -40,6 +40,8 @@
          - data.js define crearPerritos() y capitalize().
          - credenciales.js define `usuario` y `password` (el admin).
          - login.js define verificarLogin(), que los compara (usa lo anterior).
+         - usuarios.js define leerUsuarios(): los jugadores registrados en
+           game.html, para la pestaña "👥 Usuarios".
          - gestion.js va al final porque usa todo lo anterior. Adentro tiene
            el formulario de login y el CRUD, encerrados en una IIFE para que
            la consola no pueda tocarlos (ver el comentario al inicio de
@@ -47,6 +49,7 @@
     <script src="data.js" defer></script>
     <script src="credenciales.js" defer></script>
     <script src="login.js" defer></script>
+    <script src="usuarios.js" defer></script>
     <script src="gestion.js" defer></script>
 </body>
 </html>

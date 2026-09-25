@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Acceso del jugador en DOS pasos (lo maneja game.js):
+         1. Login: solo email + contraseña.
+         2. Registro: si el email no existe, un confirm() pregunta si quiere
+            registrarse; si acepta, aparecen nombre + alias.
+         Reutiliza las clases del login de gestion.html (.login,
+         .form__field, .form__submit...) para verse igual. Al entrar,
+         game.js reemplaza esta sección por la bienvenida. -->
+    <section class="login" id="acceso">
+        <header class="login__header">
+            <span class="login__icon" aria-hidden="true">🎮</span>
+            <!-- game.js cambia estos dos textos al pasar a modo registro -->
+            <h1 class="login__title" id="acceso-titulo">Entra al juego</h1>
+            <p class="login__subtitle" id="acceso-subtitulo">Ingresa con tu email y contraseña</p>
+        </header>
+
+        <!-- novalidate apaga los globitos de validación del navegador, así
+             los avisos los muestra SIEMPRE game.js, con el detalle de qué
+             falta en cada campo.
+             Cada campo es un <div> y no un <label> que envuelve todo, porque
+             adentro va una lista (<ul>) y HTML no permite listas dentro de
+             un <label>. Por eso el <label> usa for="..." para conectarse
+             con su input.
+             Las <ul class="requisitos"> van vacías: game.js les pone un <li>
+             por cada regla del campo. aria-describedby hace que un lector de
+             pantalla lea esa lista al entrar al input. -->
+        <form class="form login__form" id="form-acceso" novalidate>
+            <!-- type="email" muestra el teclado con @ en el celular. Su
+                 validación nativa queda apagada por el novalidate del form:
+                 la revisa la regex de game.js. -->
+            <div class="form__field">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" autocomplete="email" aria-describedby="requisitos-email">
+                <ul class="requisitos" id="requisitos-email"></ul>
+            </div>
+            <div class="form__field">
+                <label for="contrasena">Contraseña</label>
+                <!-- autocomplete: "current-password" en login (el navegador
+                     ofrece la guardada) y "new-password" en registro (ofrece
+                     generar una). game.js lo cambia según el modo. -->
+                <input type="password" id="contrasena" name="contrasena" autocomplete="current-password" aria-describedby="requisitos-contrasena">
+                <ul class="requisitos" id="requisitos-contrasena"></ul>
+            </div>
+
+            <!-- Solo para registrarse: oculto (hidden) hasta que el usuario
+                 acepta el confirm(). display: contents hace que el <div> no
+                 cuente como caja en el grid del form, así sus campos se
+                 acomodan igual que los de arriba. -->
+            <div class="campos-registro" id="campos-registro" hidden>
+                <div class="form__field">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" autocomplete="given-name" aria-describedby="requisitos-nombre">
+                    <ul class="requisitos" id="requisitos-nombre"></ul>
+                </div>
+                <div class="form__field">
+                    <label for="alias">Alias</label>
+                    <input type="text" id="alias" name="alias" autocomplete="nickname" aria-describedby="requisitos-alias">
+                    <ul class="requisitos" id="requisitos-alias"></ul>
+                </div>
+            </div>
+
+            <p class="form__error" id="form-acceso-error" role="alert" hidden></p>
+            <button class="form__submit" id="acceso-submit" type="submit">Entrar</button>
+            <!-- Solo se ve en modo registro: vuelve al login sin registrarse. -->
+            <button class="boton boton--secundario" id="acceso-cancelar" type="button" hidden>← Ya tengo cuenta</button>
+        </form>
+        <a class="login__volver" href="index.html">← Volver a la galería</a>
+    </section>
+
+    <!-- Juego de memoria (flip cards). Oculto (hidden) hasta que el login
+         sale bien: game.js quita #acceso y llama a iniciarJuego() de
+         juego.js, que muestra esta sección.
+         Basado en "cardGame" de Julián Bejarano (licencia MIT, ver
+         ejemplo-juego/LICENSE.txt), adaptado a los perritos de data.js. -->
+    <section class="juego" id="juego" hidden>
+        <header class="juego__header">
+            <div>
+                <!-- El saludo lleva el alias del usuario: lo escribe juego.js
+                     con textContent. -->
+                <h1 class="juego__titulo" id="juego-saludo"></h1>
+                <p class="juego__subtitulo">Voltea las cartas de a dos y encuentra los pares de perritos.</p>
+            </div>
+
+            <!-- HUD (Heads-Up Display): las estadísticas de la partida en vivo.
+                 aria-live="polite": un lector de pantalla anuncia los cambios
+                 sin interrumpir. -->
+            <div class="juego__hud" aria-live="polite">
+                <div class="juego__stat">
+                    <span class="juego__stat-valor" id="hud-tiempo">00:00</span>
+                    <span class="juego__stat-label">Tiempo</span>
+                </div>
+                <div class="juego__stat">
+                    <span class="juego__stat-valor" id="hud-intentos">0</span>
+                    <span class="juego__stat-label">Intentos</span>
+                </div>
+                <div class="juego__stat">
+                    <span class="juego__stat-valor" id="hud-pares">0/0</span>
+                    <span class="juego__stat-label">Pares</span>
+                </div>
+                <div class="juego__stat">
+                    <span class="juego__stat-valor" id="hud-puntos">0</span>
+                    <span class="juego__stat-label">Puntos</span>
+                </div>
+                <button class="boton boton--secundario" id="juego-reiniciar" type="button">↺ Reiniciar</button>
+            </div>
+        </header>
+
+        <!-- juego.js llena el tablero: 6 perritos al azar, cada uno 2 veces,
+             mezclados = 12 cartas. -->
+        <div class="tablero" id="tablero"></div>
+
+        <!-- Ranking: el mejor resultado de cada jugador (usuarios.js lo
+             guarda dentro de su usuario en localStorage). juego.js llena el
+             <tbody> y resalta la fila de quien está jugando. Reutiliza
+             .tabla de gestion.html. -->
+        <section class="ranking" aria-labelledby="ranking-titulo">
+            <h2 class="ranking__titulo" id="ranking-titulo">🏆 Ranking</h2>
+            <p class="ranking__ayuda">Cada pareja da 100 puntos menos 5 por cada segundo que tardes en encontrarla (mínimo 10). Si hay empate, gana el más rápido.</p>
+            <div class="tabla-wrapper">
+                <table class="tabla tabla--sin-descripcion">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Jugador</th>
+                            <th>Puntaje</th>
+                            <th>Intentos</th>
+                            <th>Tiempo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-cuerpo"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Historial de quien está jugando: cada partida terminada queda
+             guardada en usuario.partidas (usuarios.js), con su propio id.
+             juego.js llena el <tbody> y marca con ⭐ la partida récord. -->
+        <section class="ranking" aria-labelledby="partidas-titulo">
+            <h2 class="ranking__titulo" id="partidas-titulo">
+                📜 Mis partidas <span class="ranking__total" id="partidas-total"></span>
+            </h2>
+            <div class="tabla-wrapper">
+                <table class="tabla tabla--sin-descripcion">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Puntaje</th>
+                            <th>Intentos</th>
+                            <th>Tiempo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partidas-cuerpo"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <a class="login__volver" href="index.html">← Volver a la galería</a>
+    </section>
+
+    <!-- Estructura de UNA carta (mismo patrón <template> que las cards de
+         index.html). Es un <button> y no un <div> para que también se pueda
+         jugar con el teclado (Tab + Enter). Adentro van <span> porque un
+         <button> no puede contener <div>.
+         - __inner es lo que gira (rotateY) al voltearla.
+         - __reverso es la cara que se ve al inicio (la pata 🐾).
+         - __frente es la cara con el perrito; empieza girada 180°, así
+           queda "de espaldas" hasta que __inner da la vuelta. -->
+    <template id="carta-template">
+        <button class="carta" type="button" aria-label="Carta boca abajo">
+            <span class="carta__inner">
+                <span class="carta__cara carta__reverso" aria-hidden="true">🐾</span>
+                <span class="carta__cara carta__frente">
+                    <img class="carta__imagen" src="" alt="">
+                    <span class="carta__info">
+                        <span class="carta__nombre"></span>
+                        <span class="carta__aura"></span>
+                    </span>
+                </span>
+            </span>
+        </button>
+    </template>
+
+    <!-- Victoria: un <dialog> nativo, igual que la ventana de detalle de
+         index.html. juego.js lo rellena y lo abre con showModal(). -->
+    <dialog class="victoria" id="victoria">
+        <p class="victoria__trofeo" aria-hidden="true">🏆</p>
+        <h2 class="victoria__titulo">¡Lo lograste!</h2>
+        <p class="victoria__mensaje" id="victoria-mensaje"></p>
+        <!-- Solo se muestra si la partida superó el récord del jugador. -->
+        <p class="victoria__record" id="victoria-record" hidden>🎉 ¡Nuevo récord!</p>
+        <div class="victoria__stats">
+            <div class="juego__stat">
+                <span class="juego__stat-valor" id="victoria-puntos">0</span>
+                <span class="juego__stat-label">Puntos</span>
+            </div>
+            <div class="juego__stat">
+                <span class="juego__stat-valor" id="victoria-tiempo">00:00</span>
+                <span class="juego__stat-label">Tiempo</span>
+            </div>
+            <div class="juego__stat">
+                <span class="juego__stat-valor" id="victoria-intentos">0</span>
+                <span class="juego__stat-label">Intentos</span>
+            </div>
+        </div>
+        <button class="form__submit" id="victoria-jugar" type="button">Jugar de nuevo</button>
+    </dialog>
+
+    <!-- Orden de carga (defer los ejecuta en este orden, con el HTML ya
+         armado):
+         - data.js      crearPerritos(): de ahí salen las cartas
+         - usuarios.js  leerUsuarios(), guardarUsuarios(), récords, ranking
+                        y formatearTiempo()
+         - juego.js     iniciarJuego() y toda la lógica del juego
+         - game.js      el login; al entrar llama a iniciarJuego() -->
+    <script src="data.js" defer></script>
+    <script src="usuarios.js" defer></script>
+    <script src="juego.js" defer></script>
+    <script src="game.js" defer></script>
+</body>
+</html>
