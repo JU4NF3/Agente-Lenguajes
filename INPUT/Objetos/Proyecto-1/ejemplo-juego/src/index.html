@@ -1,0 +1,99 @@
+
+<!-- Declaración del tipo de documento y el idioma -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Metadatos básicos para caracteres especiales y diseño responsivo -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎴 Memory — MiTienda</title>
+  
+  <!-- Importación de fuentes de Google Fonts (Syne y DM Sans) -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  
+  <!-- Enlace al archivo de estilos externos -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Encabezado: Contiene el logo y el HUD (Heads-Up Display) con estadísticas del juego -->
+<header>
+  <div class="logo">🛍️ MiTienda</div>
+  <div class="hud">
+    <!-- Información del tiempo transcurrido -->
+    <div class="hud-item">
+      <span class="hud-valor" id="hud-timer">00:00</span>
+      <span class="hud-label">Tiempo</span>
+    </div>
+    
+    <div class="hud-divider"></div>
+    
+    <!-- Contador de intentos (vueltas de cartas) -->
+    <div class="hud-item">
+      <span class="hud-valor" id="hud-intentos">0</span>
+      <span class="hud-label">Intentos</span>
+    </div>
+    
+    <!-- Contador de pares de cartas encontrados -->
+    <div class="hud-item">
+      <span class="hud-valor" id="hud-pares">0/8</span>
+      <span class="hud-label">Pares</span>
+    </div>
+    
+    <div class="hud-divider"></div>
+    
+    <!-- Botón para reiniciar el juego manualmente -->
+    <button id="btn-reiniciar">↺ Reiniciar</button>
+  </div>
+</header>
+
+<!-- Sección Hero: Presentación y reglas básicas -->
+<div class="hero">
+  <h1>Encuentra los <span>pares</span><br>y gana un descuento 🎁</h1>
+  <p>Voltea las cartas de a dos. Si coinciden, son tuyas. ¡8 pares te esperan!</p>
+</div>
+
+<!-- Contenedor del Tablero: JavaScript insertará las cartas aquí dinámicamente -->
+<div id="tablero"></div>
+
+<!-- Overlay de Victoria: Se muestra solo cuando el jugador encuentra todos los pares -->
+<div id="overlay-victoria">
+  <div class="modal-victoria">
+    <!-- Icono decorativo y títulos -->
+    <div class="trofeo">🏆</div>
+    <h2>¡Lo lograste!</h2>
+    <p class="subtitulo">Completaste el juego. Aquí tu premio:</p>
+    
+    <!-- Sección del premio/descuento ganado -->
+    <div class="modal-premio">
+      <div class="label-premio">Código de descuento</div>
+      <div class="codigo-premio" id="codigo-descuento">TIENDA10</div>
+      <div class="desc-premio" id="desc-descuento">10% en tu próxima compra</div>
+    </div>
+    
+    <!-- Resumen de estadísticas finales obtenidas en la partida -->
+    <div class="stats-victoria">
+      <div class="stat">
+        <span class="stat-num" id="stat-tiempo">--:--</span>
+        <span class="stat-label">Tiempo</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" id="stat-intentos">0</span>
+        <span class="stat-label">Intentos</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">8/8</span>
+        <span class="stat-label">Pares</span>
+      </div>
+    </div>
+    
+    <!-- Botón para cerrar el modal y volver a jugar -->
+    <button id="btn-jugar-de-nuevo">Jugar de nuevo</button>
+  </div>
+</div>
+
+<!-- Enlace al archivo de lógica del juego -->
+<script src="script.js"></script>
+
+</body>
+</html>
