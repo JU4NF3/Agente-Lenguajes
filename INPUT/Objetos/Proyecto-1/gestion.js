@@ -504,6 +504,95 @@
         `;
     }
 
+    // Tabla de los jugadores registrados en game.html. No son perritos: vienen
+    // de localStorage, a través de leerUsuarios() (usuarios.js). Se vuelve a
+    // leer cada vez que se entra a la pestaña, así si alguien se registra en
+    // otra pestaña, al volver a hacer click aparece.
+    //
+    // A diferencia de la tabla de perritos, acá TODO pasa por escaparHTML:
+    // estos datos los escribió cualquier persona en game.html, y la tabla se
+    // arma con innerHTML. Sin escapar, un alias como
+    // <img src=x onerror="..."> se EJECUTARÍA dentro del panel de admin
+    // (XSS). También el hash y la fecha: vienen de localStorage, que se
+    // puede editar a mano desde DevTools.
+    function renderTablaUsuarios() {
+        const usuarios = leerUsuarios();
+
+        if (usuarios.length === 0) {
+            gestionContent.innerHTML = `
+                <h2 class="gestion-main__title">Usuarios registrados (0)</h2>
+                <p class="resultado__vacio">Todavía no hay usuarios. Se registran desde <a href="game.html">game.html</a>.</p>
+            `;
+            return;
+        }
+
+        // String(... ?? "") por si a un usuario le falta algún campo (ej. lo
+        // editaron a mano): escaparHTML necesita un texto, no undefined.
+        const v = (valor) => escaparHTML(String(valor ?? ""));
+
+        // toLocaleString("es") muestra la fecha ISO guardada
+        // ("2026-09-25T18:03:00.000Z") en formato legible y en la hora local.
+        // Si la fecha no es válida, se muestra tal cual.
+        const formatearFecha = (iso) => {
+            const fecha = new Date(iso);
+            return isNaN(fecha) ? v(iso) : v(fecha.toLocaleString("es"));
+        };
+
+        // Récord del juego de memoria (lo guarda registrarPartida en
+        // usuarios.js). Quien todavía no jugó no tiene esos campos: "—".
+        // formatearTiempo también viene de usuarios.js (ms -> "01:15").
+        const tieneRecord = (usuario) => typeof usuario.mejorPuntaje === "number";
+
+        // Cada usuario ya trae su id autogenerado (usuarios.js lo asigna al
+        // registrarse, o al leer si era un usuario antiguo sin id), así que
+        // se muestra ese en vez de numerar las filas con i + 1.
+        // partidas.length: cuántas partidas terminó (su historial completo).
+        const filas = usuarios
+            .map(
+                (usuario) => `
+                    <tr>
+                        <td>${v(usuario.id)}</td>
+                        <td>${v(usuario.nombre)}</td>
+                        <td>${v(usuario.alias)}</td>
+                        <td>${v(usuario.email)}</td>
+                        <td><code class="tabla__hash">${v(usuario.contrasenaHash)}</code></td>
+                        <td>${formatearFecha(usuario.fechaRegistro)}</td>
+                        <td>${v(usuario.partidas.length)}</td>
+                        <td>${tieneRecord(usuario) ? `${v(usuario.mejorPuntaje)} pts` : "—"}</td>
+                        <td>${tieneRecord(usuario) ? v(usuario.mejorIntentos ?? "—") : "—"}</td>
+                        <td>${tieneRecord(usuario) ? v(formatearTiempo(usuario.mejorTiempo)) : "—"}</td>
+                    </tr>
+                `
+            )
+            .join("");
+
+        // La columna dice "hash" y no "contraseña" a propósito: la contraseña
+        // original no está guardada en ningún lado (ver hashContrasena en
+        // game.js), así que ni el admin puede verla.
+        gestionContent.innerHTML = `
+            <h2 class="gestion-main__title">Usuarios registrados (${usuarios.length})</h2>
+            <div class="tabla-wrapper">
+                <table class="tabla tabla--sin-descripcion">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Alias</th>
+                            <th>Email</th>
+                            <th>Contraseña (hash SHA-256)</th>
+                            <th>Registro</th>
+                            <th>Partidas</th>
+                            <th>Mejor puntaje</th>
+                            <th>Intentos (récord)</th>
+                            <th>Tiempo récord</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
     // Marca como activo el ítem del sidebar con ese data-action y ejecuta su
     // lógica correspondiente. Se usa tanto al hacer click como al redirigir
     // automáticamente desde los formularios de Crear y Actualizar.
@@ -522,6 +611,8 @@
             renderFormularioActualizar();
         } else if (action === "eliminar") {
             renderFormularioEliminar();
+        } else if (action === "usuarios") {
+            renderTablaUsuarios();
         }
     }
 
@@ -545,6 +636,7 @@
                         <button class="sidebar__item" type="button" data-action="leer">🔍 Leer</button>
                         <button class="sidebar__item" type="button" data-action="actualizar">✏️ Actualizar</button>
                         <button class="sidebar__item" type="button" data-action="eliminar">🗑️ Eliminar</button>
+                        <button class="sidebar__item" type="button" data-action="usuarios">👥 Usuarios</button>
                     </nav>
                 </aside>
                 <main class="gestion-main" id="gestion-content"></main>

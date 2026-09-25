@@ -151,7 +151,17 @@ body::before {
     gap: 12px;
 }
 
-/* Los 3 botones van juntos dentro de una "píldora" (control segmentado). */
+/* Agrupa a la izquierda los botones de estado y el botón "🔽 Filtros";
+   flex-wrap deja que "Filtros" baje de línea en pantallas angostas. */
+.filtros__controles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Los 3 botones de estado van juntos dentro de una "píldora" (control
+   segmentado). */
 .filtros__botones {
     display: flex;
     gap: 4px;
@@ -189,10 +199,181 @@ body::before {
     outline-offset: 2px;
 }
 
+/* Botón "🔽 Filtros": píldora con el mismo aspecto que .theme-toggle. */
+.filtros__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.filtros__toggle:hover {
+    background: var(--stat-bg);
+}
+
+.filtros__toggle:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 2px;
+}
+
+/* Número de filtros activos dentro del botón: mismos colores que los
+   badges, así funciona en modo claro y oscuro sin reglas extra. */
+.filtros__toggle-contador {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Panel desplegable. Al tener el atributo popover, el navegador le pone
+   estilos propios (centrado con inset: 0 + margin: auto, fondo blanco,
+   borde negro). Acá se reemplazan: inset: auto + margin: 0 lo "descentran"
+   para que index.js lo ubique bajo el botón con top/left. */
+.filtros__panel {
+    inset: auto;
+    margin: 0;
+    width: min(280px, calc(100vw - 24px));
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.filtros__campos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Cada filtro: título arriba y <select> abajo (el <label> envuelve a los
+   dos, así hacer click en el título también enfoca el <select>). */
+.filtros__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.filtros__campo select {
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--stat-bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.filtros__campo select:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 2px;
+}
+
+.filtros__limpiar {
+    width: 100%;
+    margin-top: 16px;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Sin filtros activos no hay nada que limpiar: index.js lo desactiva. */
+.filtros__limpiar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.filtros__limpiar:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 2px;
+}
+
 .filtros__contador {
     margin: 0;
     font-size: 0.85rem;
     color: var(--text-muted);
+}
+
+/* Panel flotante del slider de Aura. position: fixed lo saca del flujo y lo
+   deja pegado a la ventana (no se va al hacer scroll). top: 50% + translateY
+   (-50%) lo centra en vertical: top baja su borde superior a la mitad de la
+   pantalla, y el translate lo sube la mitad de su propio alto. */
+.aura-filtro {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.aura-filtro__titulo {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 6ch;
+}
+
+/* tabular-nums: todos los dígitos del mismo ancho, así el número no
+   "tiembla" mientras cambia al arrastrar el slider. */
+.aura-filtro__valor {
+    font-size: 0.95rem;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.aura-filtro__limite {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+/* Lo que lo pone vertical: writing-mode: vertical-lr hace que el input "se
+   escriba" de arriba a abajo, y el navegador lo dibuja como un riel vertical
+   (el mouse y las flechas del teclado también funcionan en vertical). Por
+   defecto el mínimo quedaría ARRIBA; direction: rtl invierte el sentido para
+   que el mínimo quede abajo y el máximo arriba, como en un termómetro.
+   accent-color pinta el riel y el botón con el color de los badges. */
+.aura-filtro__slider {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    height: 220px;
+    width: 24px;
+    margin: 0;
+    accent-color: var(--badge-bg);
+    cursor: pointer;
+}
+
+.aura-filtro__slider:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 4px;
 }
 
 /* Grid responsivo de cards: repeat(auto-fit, minmax(260px, 1fr)) mete tantas
@@ -421,6 +602,31 @@ body::before {
 
     .card__nombre {
         font-size: 1.1rem;
+    }
+
+    /* En celular el panel flotante se achica y se pega más al borde, y la
+       galería deja libre solo el lado derecho (no alcanza para dejar 72px
+       a cada lado sin que las cards queden más angostas que 260px). */
+    .aura-filtro {
+        right: 6px;
+        padding: 10px 6px;
+    }
+
+    .aura-filtro__slider {
+        height: 150px;
+    }
+
+    .galeria {
+        padding: 0 64px 0 12px;
+    }
+}
+
+/* Desde tablet hacia arriba: espacio libre a ambos lados de la galería para
+   que el panel flotante del slider no tape el borde de las cards (simétrico,
+   así el grid sigue centrado). */
+@media (min-width: 481px) {
+    .galeria {
+        padding: 0 88px;
     }
 }
 
@@ -742,6 +948,61 @@ body::before {
     color: var(--text);
 }
 
+/* Lista de requisitos bajo cada campo de game.html. game.js le pone la
+   clase .cumple a cada <li> cuya regla se cumple; el ícono lo pone el CSS
+   con ::before, así el JS solo cambia una clase y no reescribe texto. */
+.requisitos {
+    margin: 2px 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.78rem;
+}
+
+.requisitos__item {
+    color: var(--text-muted);
+}
+
+.requisitos__item::before {
+    content: "❌ ";
+}
+
+.requisitos__item.cumple {
+    color: var(--text);
+}
+
+.requisitos__item.cumple::before {
+    content: "✅ ";
+}
+
+/* Bloque de nombre + alias de game.html. display: contents hace que este
+   <div> no cuente como caja: sus campos se acomodan en el grid del form
+   como si fueran hijos directos. OJO: una regla con display le gana al
+   atributo hidden (el navegador lo implementa como display: none, pero con
+   menos prioridad que el CSS propio), por eso hace falta la segunda regla
+   para que hidden siga ocultándolo. */
+.campos-registro {
+    display: contents;
+}
+
+.campos-registro[hidden] {
+    display: none;
+}
+
+/* "← Ya tengo cuenta": ancho completo, debajo de "Registrarme". */
+#acceso-cancelar {
+    justify-self: stretch;
+}
+
+/* Campo con reglas sin cumplir, después del primer intento de enviar
+   (game.js pone aria-invalid="true"). Mismo rojo que .form__error. */
+.form__field input[aria-invalid="true"] {
+    border-color: #e5484d;
+    box-shadow: 0 0 0 1px #e5484d;
+}
+
 .resultado__vacio {
     margin: 0;
     padding: 12px;
@@ -909,6 +1170,20 @@ body::before {
 
 .tabla tbody tr:hover {
     background: var(--stat-bg);
+}
+
+/* Hash de la contraseña en la tabla de Usuarios: 64 caracteres sin espacios.
+   Las celdas de .tabla no envuelven texto (nowrap), así que sin esto la
+   columna quedaría larguísima. word-break: break-all permite cortar en
+   cualquier letra (un hash no tiene palabras que respetar), y el ancho
+   fijo lo deja en 3 renglones parejos. */
+.tabla__hash {
+    display: block;
+    width: 22ch;
+    white-space: normal;
+    word-break: break-all;
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
 .tabla__imagen {
@@ -1181,4 +1456,360 @@ body::before {
         transform: scale(1.1) translateY(-18px);
         opacity: 1;
     }
+}
+
+/* =====================================================================
+   Juego de memoria (game.html + juego.js)
+   Basado en "cardGame" de Julián Bejarano (MIT), adaptado a las variables
+   de color del sitio (--card-bg, --badge-bg...) en vez de las suyas, así
+   funciona con el mismo tema que el resto de páginas.
+   ===================================================================== */
+
+.juego {
+    width: calc(100% - 32px);
+    max-width: 760px;
+    margin-top: 4vh;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Igual que .campos-registro: display: flex le gana al atributo hidden, así
+   que hace falta esta regla para que la sección siga oculta antes del login. */
+.juego[hidden] {
+    display: none;
+}
+
+/* Tarjeta de arriba: saludo a la izquierda y HUD a la derecha; en pantallas
+   angostas flex-wrap baja el HUD a otra línea. */
+.juego__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+}
+
+.juego__titulo {
+    margin: 0 0 4px 0;
+    font-size: 1.4rem;
+}
+
+.juego__subtitulo {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.juego__hud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+
+.juego__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 52px;
+}
+
+/* tabular-nums: los dígitos tienen el mismo ancho, así el cronómetro no
+   "baila" cada segundo. */
+.juego__stat-valor {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--badge-bg);
+    font-variant-numeric: tabular-nums;
+}
+
+.juego__stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
+
+/* 12 cartas: 4 columnas x 3 filas en escritorio. */
+.tablero {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* --- Carta con giro 3D ---------------------------------------------- */
+
+/* El <button> solo da el tamaño y la perspective (sin ella el giro se
+   vería plano). Se le quitan los estilos de botón del navegador. */
+.carta {
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.carta:disabled {
+    cursor: default;
+}
+
+.carta:focus-visible {
+    outline: 2px solid var(--badge-bg);
+    outline-offset: 3px;
+    border-radius: 14px;
+}
+
+/* Lo que realmente gira. preserve-3d hace que sus dos caras (hijas) giren
+   en 3D junto con él, en vez de aplanarse. */
+.carta__inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carta.volteada .carta__inner,
+.carta.encontrada .carta__inner {
+    transform: rotateY(180deg);
+}
+
+/* Las dos caras, una encima de la otra. backface-visibility: hidden
+   esconde la cara que queda "de espaldas": por eso al girar 180° se ve la
+   otra. */
+.carta__cara {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Reverso: la pata 🐾 sobre un degradado con los colores de poderes y
+   badges del sitio. */
+.carta__reverso {
+    display: grid;
+    place-items: center;
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--poder-bg), var(--badge-bg));
+    transition: filter 0.2s ease;
+}
+
+.carta:hover:not(:disabled) .carta__reverso {
+    filter: brightness(1.15);
+}
+
+/* Frente: empieza girado 180° (de espaldas). Cuando .carta__inner gira
+   otros 180°, suma 360° y queda de frente. */
+.carta__frente {
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    transform: rotateY(180deg);
+}
+
+.carta__imagen {
+    display: block;
+    width: 100%;
+    height: 68%;
+    object-fit: cover;
+}
+
+.carta__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.carta__nombre {
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.carta__aura {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* Par encontrado: borde y brillo verde. */
+.carta.encontrada .carta__frente {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 2px #2ecc71, 0 0 18px rgba(46, 204, 113, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carta__inner {
+        transition: none;
+    }
+}
+
+/* --- Ventana de victoria (<dialog>) --------------------------------- */
+
+.victoria {
+    width: calc(100% - 32px);
+    max-width: 360px;
+    padding: 32px 28px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text);
+    text-align: center;
+}
+
+.victoria::backdrop {
+    background: rgba(15, 14, 23, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.victoria__trofeo {
+    margin: 0;
+    font-size: 3rem;
+}
+
+.victoria__titulo {
+    margin: 8px 0 4px 0;
+}
+
+.victoria__mensaje {
+    margin: 0 0 20px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.victoria__stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 24px;
+}
+
+.victoria .form__submit {
+    width: 100%;
+}
+
+/* Celular: 3 columnas x 4 filas, así las cartas no quedan tan chicas. */
+@media (max-width: 480px) {
+    .tablero {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .juego__header {
+        padding: 16px;
+    }
+}
+
+/* --- Puntaje y ranking del juego de memoria -------------------------- */
+
+/* .tabla le da a la última columna 220px mínimos y le deja envolver texto,
+   pensado para la descripción de los perritos. Las tablas de usuarios y de
+   ranking terminan en columnas cortas (tiempo), así que vuelven a lo normal. */
+.tabla--sin-descripcion td:last-child {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+/* La carta necesita position: relative para que el "+90" (position:
+   absolute) se ubique respecto a ELLA y no a la página. */
+.carta {
+    position: relative;
+}
+
+/* "+90" al encontrar una pareja: aparece en el centro de la carta, sube y
+   se desvanece (keyframes subirPuntos). juego.js lo borra al segundo.
+   pointer-events: none para que no tape clicks. */
+.carta__puntos {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    z-index: 2;
+    transform: translate(-50%, 0);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #2ecc71;
+    color: #0f2e1b;
+    font-size: 0.95rem;
+    font-weight: bold;
+    pointer-events: none;
+    animation: subirPuntos 1s ease-out forwards;
+}
+
+@keyframes subirPuntos {
+    from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carta__puntos {
+        animation: none;
+    }
+}
+
+.ranking {
+    padding: 20px 24px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+}
+
+.ranking__titulo {
+    margin: 0 0 4px 0;
+    font-size: 1.2rem;
+}
+
+.ranking__ayuda {
+    margin: 0 0 14px 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Fila de quien está jugando: mismo color de los badges, suave. */
+.ranking__fila--yo td {
+    background: color-mix(in srgb, var(--badge-bg) 18%, transparent);
+    font-weight: bold;
+}
+
+.ranking__vacio {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.victoria__record {
+    margin: -8px 0 16px 0;
+    font-weight: bold;
+    color: #2ecc71;
+}
+
+@media (max-width: 480px) {
+    .ranking {
+        padding: 16px;
+    }
+}
+
+/* "(3 en total)" junto al título de Mis partidas. */
+.ranking__total {
+    font-size: 0.8rem;
+    font-weight: normal;
+    color: var(--text-muted);
 }

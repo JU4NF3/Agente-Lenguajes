@@ -128,43 +128,204 @@ function renderizarObjetos(listaObjetos) {
     listaObjetos.forEach(renderPerrito);
 }
 
-// Filtro por estado (botones Todos / Activos / Inactivos de index.html).
-const filtroBotones = document.querySelectorAll(".filtros__boton");
+// ---------------------------------------------------------------------
+// Menú de filtros (botón "🔽 Filtros" de index.html).
+// ---------------------------------------------------------------------
+
+// ÚNICO lugar donde se definen los filtros del menú. Cada objeto se
+// convierte en un <select> (ver renderFiltros):
+//   id        el name del <select>; con él se lee qué opción está elegida
+//   label     el título que se ve arriba del <select>
+//   opciones  cada una con su valor, su texto y una función cumple(perrito)
+//             que devuelve true si ese perrito pasa el filtro
+// La opción "Todos" no va acá: renderFiltros la agrega sola al inicio de
+// cada <select>, con valor "" (vacío = ese filtro no descarta a nadie).
+// Para sumar un filtro nuevo (raza, universo...) basta con agregar otro
+// objeto a este array: el HTML y aplicarFiltro no se tocan.
+// (El estado NO va acá: tiene sus propios 3 botones, ver más abajo.)
+const filtrosConfig = [
+    {
+        id: "edad",
+        label: "Edad",
+        opciones: [
+            { valor: "cachorro", label: "Cachorro (0–2 años)", cumple: (perrito) => perrito.edad <= 2 },
+            { valor: "adulto", label: "Adulto (3–5 años)", cumple: (perrito) => perrito.edad >= 3 && perrito.edad <= 5 },
+            { valor: "senior", label: "Senior (6+ años)", cumple: (perrito) => perrito.edad >= 6 },
+        ],
+    },
+];
+
+const filtrosToggle = document.getElementById("filtros-toggle");
+const filtrosPanel = document.getElementById("filtros-panel"); // es un <form>
+const filtrosCampos = document.getElementById("filtros-campos");
+const filtrosToggleContador = document.getElementById("filtros-toggle-contador");
+const filtrosLimpiar = document.getElementById("filtros-limpiar");
 const filtrosContador = document.getElementById("filtros-contador");
 
-// Arma la lista según el filtro elegido y se la pasa a renderizarObjetos,
-// que ya se encarga de vaciar el grid y pintar. filter NO modifica
-// `perritos`: devuelve un array NUEVO solo con los que cumplen la condición,
-// así que al volver a "Todos" el array original sigue completo.
-function aplicarFiltro(filtro) {
-    let listaFiltrada = perritos;
-    if (filtro === "activos") {
-        listaFiltrada = perritos.filter((perrito) => perrito.activo);
-    } else if (filtro === "inactivos") {
-        listaFiltrada = perritos.filter((perrito) => !perrito.activo);
+// Crea un <label> con su título y su <select> por cada filtro de
+// filtrosConfig (mismo estilo createElement + textContent que renderPerrito).
+// new Option(texto, valor) es un atajo para crear un <option>.
+function renderFiltros() {
+    filtrosConfig.forEach((filtro) => {
+        const campo = document.createElement("label");
+        campo.className = "filtros__campo";
+
+        const titulo = document.createElement("span");
+        titulo.textContent = filtro.label;
+
+        const select = document.createElement("select");
+        select.name = filtro.id;
+        select.add(new Option("Todos", ""));
+        filtro.opciones.forEach((opcion) => {
+            select.add(new Option(opcion.label, opcion.valor));
+        });
+
+        campo.append(titulo, select);
+        filtrosCampos.appendChild(campo);
+    });
+}
+
+renderFiltros();
+
+// Slider de Aura mínima (panel flotante de index.html).
+const auraSlider = document.getElementById("aura-slider");
+const auraValorElement = document.getElementById("aura-valor");
+
+// Los límites del slider salen de los datos, no se escriben a mano: map
+// saca solo las auras y el spread (...) las pasa sueltas a Math.min/Math.max
+// (mismo truco que siguienteId en gestion.js). Arranca en el mínimo, así al
+// cargar la página no se oculta ningún perrito.
+const auras = perritos.map((perrito) => perrito.aura);
+auraSlider.min = Math.min(...auras);
+auraSlider.max = Math.max(...auras);
+auraSlider.value = auraSlider.min;
+document.getElementById("aura-min").textContent = auraSlider.min;
+document.getElementById("aura-max").textContent = auraSlider.max;
+
+// Filtro por estado (botones Todos / Activos / Inactivos de index.html).
+const filtroBotones = document.querySelectorAll(".filtros__boton");
+
+// Recuerda qué botón de estado está elegido. Hace falta porque hay otros
+// filtros (menú y slider): cuando cambian, hay que volver a filtrar también
+// por estado, y ellos no tienen forma de saber qué botón se clickeó antes.
+let estadoElegido = "todos";
+
+// true si el perrito corresponde al botón de estado elegido.
+function cumpleEstado(perrito) {
+    if (estadoElegido === "activos") {
+        return perrito.activo;
     }
+    if (estadoElegido === "inactivos") {
+        return !perrito.activo;
+    }
+    return true; // "todos": no descarta a nadie
+}
+
+// Arma la lista aplicando TODOS los filtros a la vez y se la pasa a
+// renderizarObjetos, que ya se encarga de vaciar el grid y pintar. filter NO
+// modifica `perritos`: devuelve un array NUEVO solo con los que cumplen,
+// así que al volver a "Todos" el array original sigue completo.
+function aplicarFiltro() {
+    // 1) Por cada filtro del menú, busca la opción elegida en su <select>.
+    //    filtrosPanel es un <form>, y form.elements[name] da el campo con ese
+    //    name. Si el <select> está en "Todos" (valor ""), find no encuentra
+    //    ninguna opción y devuelve undefined; el filter de después descarta
+    //    esos undefined. Queda un array solo con las opciones ACTIVAS.
+    const opcionesActivas = filtrosConfig
+        .map((filtro) => {
+            const valorElegido = filtrosPanel.elements[filtro.id].value;
+            return filtro.opciones.find((opcion) => opcion.valor === valorElegido);
+        })
+        .filter((opcion) => opcion !== undefined);
+
+    // 2) .value de un input SIEMPRE es un string ("4200"), aunque sea
+    //    type="range". Number() lo convierte para comparar números con números.
+    const auraMinima = Number(auraSlider.value);
+    auraValorElement.textContent = auraMinima;
+
+    // 3) Un perrito se muestra si cumple su estado (botones), TODAS las
+    //    opciones activas del menú (every da true solo si la función da true
+    //    para cada elemento; con un array vacío da true, o sea, sin filtros
+    //    activos pasan todos) Y además llega al aura mínima del slider.
+    const listaFiltrada = perritos.filter(
+        (perrito) =>
+            cumpleEstado(perrito) &&
+            opcionesActivas.every((opcion) => opcion.cumple(perrito)) &&
+            perrito.aura >= auraMinima
+    );
 
     renderizarObjetos(listaFiltrada);
 
-    // Resalta solo el botón elegido (toggle con true/false, igual que el
-    // sidebar de gestion.js) y sincroniza aria-pressed para lectores de pantalla.
+    // Resalta solo el botón de estado elegido (toggle con true/false, igual
+    // que el sidebar de gestion.js) y sincroniza aria-pressed para lectores
+    // de pantalla.
     filtroBotones.forEach((boton) => {
-        const estaElegido = boton.dataset.filtro === filtro;
+        const estaElegido = boton.dataset.filtro === estadoElegido;
         boton.classList.toggle("active", estaElegido);
         boton.setAttribute("aria-pressed", estaElegido);
     });
 
+    // Número dentro del botón "Filtros": avisa que hay filtros puestos aunque
+    // el menú esté cerrado. Con 0 se esconde, y "Limpiar" se desactiva.
+    filtrosToggleContador.textContent = opcionesActivas.length;
+    filtrosToggleContador.hidden = opcionesActivas.length === 0;
+    filtrosLimpiar.disabled = opcionesActivas.length === 0;
+
     filtrosContador.textContent = `Mostrando ${listaFiltrada.length} de ${perritos.length}`;
 }
 
-// Un solo listener por botón: el data-filtro le dice a aplicarFiltro qué hacer.
+// Un solo listener en el <form> en vez de uno por <select>: el evento
+// "change" de cualquier <select> "burbujea" (sube) hasta su form. Así los
+// filtros que se agreguen a futuro quedan escuchados sin escribir nada más.
+filtrosPanel.addEventListener("change", aplicarFiltro);
+
+// Un listener por botón de estado: guarda cuál se eligió (su data-filtro) y
+// vuelve a filtrar con todo lo demás como estaba.
 filtroBotones.forEach((boton) => {
-    boton.addEventListener("click", () => aplicarFiltro(boton.dataset.filtro));
+    boton.addEventListener("click", () => {
+        estadoElegido = boton.dataset.filtro;
+        aplicarFiltro();
+    });
 });
 
-// Primera pintada: "Todos" llama a renderizarObjetos(perritos) por dentro y
-// además escribe el contador y marca el botón.
-aplicarFiltro("todos");
+// form.reset() devuelve cada <select> a su primera opción ("Todos"). No
+// toca el slider de aura: ese vive fuera del menú y se ajusta aparte.
+filtrosLimpiar.addEventListener("click", () => {
+    filtrosPanel.reset();
+    aplicarFiltro();
+});
+
+// Un popover se abre por defecto en el CENTRO de la pantalla. "toggle" se
+// dispara cada vez que se abre o se cierra; al abrirse, se ubica justo
+// debajo del botón midiendo dónde está (getBoundingClientRect, igual que en
+// setupTilt). Math.min evita que se salga por la derecha en pantallas angostas.
+filtrosPanel.addEventListener("toggle", (event) => {
+    if (event.newState !== "open") {
+        return;
+    }
+    const rect = filtrosToggle.getBoundingClientRect();
+    const maxLeft = window.innerWidth - filtrosPanel.offsetWidth - 12;
+    filtrosPanel.style.top = `${rect.bottom + 8}px`;
+    filtrosPanel.style.left = `${Math.max(12, Math.min(rect.left, maxLeft))}px`;
+});
+
+// El panel queda fijo en la pantalla, así que si se hace scroll el botón se
+// movería y el panel no: mejor cerrarlo. :popover-open es la pseudo-clase
+// que indica si un popover está abierto.
+window.addEventListener("scroll", () => {
+    if (filtrosPanel.matches(":popover-open")) {
+        filtrosPanel.hidePopover();
+    }
+});
+
+// "input" (y no "change") es lo que hace que se actualice EN VIVO: "input" se
+// dispara en cada paso mientras se arrastra el botón del slider; "change"
+// solo una vez, al soltarlo.
+auraSlider.addEventListener("input", aplicarFiltro);
+
+// Primera pintada: con todo en "Todos" y el slider en el mínimo, muestra los
+// 12 perritos y además escribe el contador.
+aplicarFiltro();
 
 // Ventana de detalle: hay un solo <dialog> en el HTML, se reutiliza para
 // cualquier perrito que se clickee (por eso acá SÍ usamos ids, a diferencia
