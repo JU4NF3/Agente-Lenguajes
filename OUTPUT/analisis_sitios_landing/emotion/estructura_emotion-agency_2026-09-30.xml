@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Página analizada: /about (URL entregada por el estudiante), no el home. -->
+<sitio nombre="Emotion Agency" url="https://emotion-agency.com/about">
+  <header>
+    <logo>emotion (wordmark serif en la píldora de navegación)</logo>
+    <!-- Píldora position:fixed abajo al centro (botón de menú + logo + asistente IA). El botón abre un panel flotante centrado con páginas y ajustes (Sound, Dark mode, Quality) y el CTA Let's talk. -->
+    <nav tipo="hamburguesa">
+      <enlace>Home</enlace>
+      <enlace>About</enlace>
+      <enlace>Work</enlace>
+      <enlace>Contact</enlace>
+    </nav>
+  </header>
+  <main>
+    <section tipo="hero">"People don't remember websites ↪ people remember how it made them feel" sobre escena 3D (Three.js); precedido por pantalla de entrada con/sin audio</section>
+    <section tipo="storytelling">"We're a studio designing &amp; engineering interfaces" para marcas y founders</section>
+    <section tipo="storytelling">"The feeling": a good site gets looked at, a great one gets felt</section>
+    <section tipo="storytelling">"How we think": it starts with why</section>
+    <section tipo="storytelling">"Who we are": two of us, one standard</section>
+    <section tipo="historia">Est. 2018, "How it began": origen del estudio con fotos del equipo</section>
+    <section tipo="equipo">Founders: Roman Stets (chaos→clarity) y Leonid Kostetskyi (meaning→form), con LinkedIn</section>
+    <section tipo="approach">"Where the best projects start": invitación a colaborar</section>
+    <section tipo="faq">FAQ(s): 7 preguntas (quiénes son, qué hacen, clientes, diferencial, precio, tech stack)</section>
+  </main>
+  <footer>
+    <redes>Awwwards, Twitter / X, Instagram, LinkedIn, Behance</redes>
+    <contacto>"Let's build something meaningful" + Start project (/contact) · hello@emotion-agency.com (botón copiar) · Kryvyi Rih, Ucrania · Terms of Service, Privacy Policy · "Keep scrolling" para revelar la siguiente página (Projects)</contacto>
+  </footer>
+</sitio>

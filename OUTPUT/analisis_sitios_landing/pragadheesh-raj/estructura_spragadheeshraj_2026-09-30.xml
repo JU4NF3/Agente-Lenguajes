@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitio nombre="Pragadheesh Raj" url="https://spragadheeshraj.com">
+  <header>
+    <logo>Pragadheesh Raj (nombre en texto, enlace al inicio)</logo>
+    <!-- Header position:fixed; los 4 enlaces (anclas) + íconos de Email y LinkedIn siguen visibles en móvil, sin hamburguesa. -->
+    <nav tipo="fija">
+      <enlace>Intro</enlace>
+      <enlace>Work</enlace>
+      <enlace>About</enlace>
+      <enlace>Contact</enlace>
+    </nav>
+  </header>
+  <main>
+    <section tipo="hero">Nombre gigante "Pragadheesh Raj" · Founder · Designer · Artist · "I build experiences at the intersection of art, science and tech" · 4 videos que reaccionan al movimiento del dispositivo; precedido por pantalla de permiso de movimiento y loader</section>
+    <section tipo="servicios">What I do: filosofía + capacidades en Strategy, Product, Brand &amp; Creative y Systems</section>
+    <section tipo="proyectos">Featured Work: 4 casos destacados (Deep Holistics, Smitch Care, Smitch Home, Future of Me) con años</section>
+    <section tipo="proyectos">Selected Work "Things I've Built": 7 proyectos numerados con cliente y disciplina; imagen WebGL al hacer hover</section>
+    <section tipo="about">About Me: historia personal (Coimbatore) + "What I've been building": Deep Holistics (CPO) y Smitch (CTO)</section>
+    <section tipo="quote">Punchline: "Art taught me to see. Science taught me to question. Technology gave me a way to build."</section>
+  </main>
+  <footer>
+    <redes>LinkedIn, Awwwards</redes>
+    <contacto>"Always curious about new ideas." · spragadheeshraj@gmail.com · Awwwards Honors (mención honorífica, con visor del certificado) · nombre animado en canvas WebGL</contacto>
+  </footer>
+</sitio>

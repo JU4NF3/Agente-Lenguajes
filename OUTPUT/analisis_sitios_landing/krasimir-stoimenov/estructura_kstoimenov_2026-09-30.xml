@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitio nombre="Krasimir Stoimenov" url="https://kstoimenov.com">
+  <header>
+    <logo>KRASIMIR STOIMENOV (wordmark en el hero + logo animado en canvas)</logo>
+    <!-- Desktop: píldora position:fixed centrada abajo de la pantalla, con toggle de tema claro/oscuro. Móvil: botón "Home, open menu". -->
+    <nav tipo="fija">
+      <enlace>Work</enlace>
+      <enlace>Services+</enlace>
+      <enlace>Pricing</enlace>
+      <enlace>About</enlace>
+      <enlace>Let's talk (CTA a agenda en cal.eu)</enlace>
+    </nav>
+  </header>
+  <main>
+    <section tipo="hero">"From Wireframes to Wow's — elevating UX to the remarkable" sobre shader WebGL, botón Book a call, preloader con contador de %</section>
+    <section tipo="about">Texto sobre su enfoque holístico (estética + usabilidad) con palabras intercaladas</section>
+    <section tipo="showreel">Play Real: video showreel (.webm) con botón de reproducir</section>
+    <section tipo="metricas">12 años · 87 proyectos · 3+ años de cooperación promedio · 6k horas de research y prototipado</section>
+    <section tipo="servicios">Services+: Product Design, Digital Strategy, Web Design, Brand Identity, Service Design + "Who I build for"</section>
+    <section tipo="proyectos">Casos: Acronis, Polygon, DB Digital Wallet, WP Engine (coming soon), Orion, Macmillan, enlazados a /work/...</section>
+    <section tipo="cta">"Want to see how I enable companies?" con botón View all works</section>
+    <section tipo="testimonios">"What people have to say": 5 testimonios (Macmillan, Polygon.io, WP Engine, Ventures Lab, Acronis)</section>
+    <section tipo="quote">Frase animada: "Design to scale &amp; drive experiences with data"</section>
+    <section tipo="partners">Valuable Partners: logos de clientes, de pre-seed a Fortune 500</section>
+  </main>
+  <footer>
+    <redes>LinkedIn, X, Behance, Dribbble, Awwwards</redes>
+    <contacto>"Get in touch" · botón Contact / "Prefer to write? Send a note." · ©2026 KRS · Privacy policy, Terms &amp; Conditions · Back to top</contacto>
+  </footer>
+</sitio>
