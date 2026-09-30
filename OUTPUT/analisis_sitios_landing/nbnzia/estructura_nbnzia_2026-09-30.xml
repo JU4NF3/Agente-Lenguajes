@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- URL entregada con ancla #process; se analizó el home completo (one-page). -->
+<sitio nombre="NBNZIA" url="https://www.nbnzia.com/#process">
+  <header>
+    <logo>nbnzia (wordmark animado letra por letra en el loader)</logo>
+    <!-- En el hero hay enlaces en línea; al hacer scroll aparece una hamburguesa position:fixed que abre un panel a pantalla completa (componente bold-nav-full, top:0 / bottom:0). -->
+    <nav tipo="overlay-fullscreen">
+      <enlace>About</enlace>
+      <enlace>Services</enlace>
+      <enlace>Work</enlace>
+      <enlace>Process</enlace>
+      <enlace>Let's talk (Calendly)</enlace>
+    </nav>
+  </header>
+  <main>
+    <section tipo="hero">Loader tipográfico "nbnzia" + "Every great trick has three parts. Your website is the Prestige."</section>
+    <section tipo="about">"Certified Webflow Partner. 7+ years. Custom everything." · bio (equipo + exilusionista) · botones Let's talk / See the work</section>
+    <section tipo="cifras">Marquee: 7+ años en Webflow, Certified Partner, clientes en 15+ países, 10 años como ilusionista, 117+ / 50+ proyectos</section>
+    <section tipo="video">Video (HLS) que escala al hacer scroll</section>
+    <section tipo="servicios">What I do: [01] Webflow Development, [02] UI/UX Design, [03] Motion &amp; Animation, [04] Marketing Strategy</section>
+    <section tipo="proyectos">"Every trick leaves evidence" (título en curva SVG) + 5 casos: CTO Bees, Manana Films, Lumino, Jack3d, Almore Capital, con enlace al sitio externo</section>
+    <section tipo="proceso">"Behind the illusion there are three acts": Step 01 The Pledge, Step 02 The Turn, Step 03 The Prestige, con entregables por paso</section>
+    <section tipo="contacto">"Let's talk — Ready for your Prestige moment?" · formulario Name / Email con Turnstile · máscara radial al pasar el cursor · easter egg Emoji Rain</section>
+  </main>
+  <footer>
+    <!-- No hay etiqueta <footer>: estos datos viven dentro de la sección de contacto. -->
+    <redes>Webflow (perfil), Instagram, LinkedIn</redes>
+    <contacto>hey@nbnzia.com · © Yevhenii Nebenzia, 2026 · All Rights Reserved</contacto>
+  </footer>
+</sitio>

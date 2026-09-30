@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitio nombre="Inkspire" url="https://inkspire-oly.webflow.io">
+  <header>
+    <logo>INKSPIRE© (imagen, centrado, enlace al home)</logo>
+    <!-- Navbar position:fixed con redes a la izquierda y hamburguesa a la derecha en todos los tamaños; abre overlay a pantalla completa con teléfono y email. -->
+    <nav tipo="overlay-fullscreen">
+      <enlace>About</enlace>
+      <enlace>Service</enlace>
+      <enlace>Works</enlace>
+      <enlace>Contact</enlace>
+    </nav>
+  </header>
+  <main>
+    <section tipo="hero">Wordmark gigante "INKSPIRE STUDIO©" (Inter Tight 215px, mayúsculas) con fotografía</section>
+    <section tipo="about">Studio©: "We believe every picture tells a story..." — presentación del estudio de fotografía</section>
+    <section tipo="servicios">Provide Service: Photography Shoot, Cinematic Films, Commercial Work, Custom Projects (texto con efecto roll en hover)</section>
+    <section tipo="proyectos">Featured Works: 5 proyectos numerados (01/–05/) con categoría, enlazados a /work-details/... (CMS)</section>
+    <section tipo="equipo">Creative Team: 3 miembros con cargo y frase (Creative Director, Studio Manager, Photo Editor)</section>
+    <section tipo="manifiesto">Texto que aparece al hacer scroll ("Agency obsessed with light, color, and emotion...") y contadores animados: % de clientes satisfechos y M+ fotos y videos</section>
+    <section tipo="testimonios">Clients Review: línea de progreso animada y slider de reseñas (Emma &amp; Daniel)</section>
+    <section tipo="contacto">Get in Touch: teléfono, email, ubicación (Google Maps) y formulario Name / Email / Message</section>
+  </main>
+  <footer>
+    <redes>Sin íconos en el footer: las redes están en el navbar (Facebook, Instagram, Dribbble, X) y en la sección de contacto (Instagram, X, Facebook)</redes>
+    <contacto>Enlaces About, Service, Works, Contact · Style Guide, Changelog, License · © 2025 Inkspire All Rights Reserved</contacto>
+  </footer>
+</sitio>

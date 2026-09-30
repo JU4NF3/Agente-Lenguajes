@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitio nombre="Novasite" url="https://novasite-oly.webflow.io">
+  <header>
+    <logo>NOVASITE® (texto/wordmark, enlace al home)</logo>
+    <!-- Desktop: barra horizontal position:absolute (no fija, se va con el scroll). Tablet/móvil: hamburguesa con dropdown full-width. -->
+    <nav tipo="hamburguesa">
+      <enlace>Home</enlace>
+      <enlace>About</enlace>
+      <enlace>Service</enlace>
+      <enlace>Project</enlace>
+      <enlace>Contact</enlace>
+    </nav>
+  </header>
+  <main>
+    <section tipo="hero">Slider de 3 fotos con acento rojo, claim "We patner with brands to create digital design...", lista de servicios y wordmark NOVASITE® gigante</section>
+    <section tipo="about">Declaración del estudio en mayúsculas: diseñadores UI/UX centrados en el usuario</section>
+    <section tipo="proceso">Work Process en 3 pasos: 01 Research &amp; Define, 02 Ideate &amp; Design, 03 Test &amp; Implement</section>
+    <section tipo="servicios">4 servicios con sub-lista: Brand Identity, UI/UX Design, Development, Product Design</section>
+    <section tipo="proyectos">Latest Projects: 4 tarjetas (Branding, Development, Design, Research //2025) enlazadas a /project/... (CMS)</section>
+    <section tipo="testimonios">Client Feedback: slider con 5 testimonios (nombre y cargo)</section>
+    <section tipo="imagen-parallax">Imagen a pantalla completa con escala/parallax al hacer scroll</section>
+    <section tipo="premios">Winning Awards: 4 premios con año (2022–2025)</section>
+    <section tipo="contacto">Let's Talk: tarjeta del CEO (Leon Rowley) y formulario Name / Email / Message con Turnstile</section>
+    <section tipo="cta">Marquee de palabras (Delivery, Create, Inspire, Design) y llamado "Reach out if you're ready..."</section>
+  </main>
+  <footer>
+    <redes>Facebook, Instagram, LinkedIn, Twitter (X)</redes>
+    <contacto>info@novasite.com · formulario de newsletter (email) · enlaces Home, About, Service, Project, License, Changelog, Style Guide · © 2025 Novasite®</contacto>
+  </footer>
+</sitio>
