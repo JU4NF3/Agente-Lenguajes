@@ -1,0 +1,983 @@
+/* Botones, tarjetas, chips, testimonios, aliados, preloader y transición de paneles. */
+
+/* --- Botones --- */
+.btn {
+  --btn-shine: rgba(255, 255, 255, 0.35);
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate; /* mantiene el brillo (z-index -1) por encima del propio fondo del botón */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  /* Sin `transform` aquí: GSAP anima el transform de los botones del hero
+     al entrar, y una transición CSS sobre él haría que ese tween se atrase. */
+  transition:
+    background-color 0.3s var(--ease-default),
+    border-color 0.3s var(--ease-default),
+    box-shadow 0.3s var(--ease-default);
+}
+
+/* Brillo — igual que los chips de About: una banda de luz diagonal
+   estacionada fuera del borde izquierdo que se desliza hasta el medio en
+   hover y vuelve a salir al soltar (la transición vive en el estado base,
+   así anima en ambas direcciones). Queda detrás de la etiqueta, para que
+   el texto nunca se lave. */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, var(--btn-shine) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.6s var(--ease-default);
+  pointer-events: none;
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  transform: translateX(0);
+}
+
+/* Primario: brillo blanco sobre lima + un suave resplandor lima. */
+.btn-primary {
+  --btn-shine: rgba(255, 255, 255, 0.6);
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255, 214, 10, 0.25);
+}
+
+/* Ghost: relleno tipo vidrio, el borde se ilumina, brillo blanco tenue. */
+.btn-ghost {
+  --btn-shine: rgba(255, 255, 255, 0.18);
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 18px rgba(255, 214, 10, 0.15);
+}
+
+[data-theme="light"] .btn-ghost {
+  --btn-shine: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .btn-ghost:hover,
+[data-theme="light"] .btn-ghost:focus-visible {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* El hero se mantiene oscuro en el tema claro, así que su botón ghost
+   conserva ahí texto blanco y borde blanco. */
+[data-theme="light"] .hero .btn-ghost {
+  --btn-shine: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border-color: #fff;
+}
+
+[data-theme="light"] .hero .btn-ghost:hover,
+[data-theme="light"] .hero .btn-ghost:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #fff;
+}
+
+/* --- Párrafo principal de About --- */
+.about p[data-split-about] {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 1rem + 2.2vw, 2.75rem);
+  line-height: 1.35;
+  color: var(--color-text);
+  max-width: 900px;
+}
+
+/* --- Chips (sección About) — marquesina infinita de áreas de enfoque --- */
+.chip-marquee {
+  overflow: hidden;
+  margin-top: var(--space-5);
+  /* Difumina los bordes para que los chips no se vean cortados a la mitad. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* Sin JS los chips simplemente hacen wrap; main.js agrega .chip-marquee--ready
+   una vez que ha clonado suficientes conjuntos para llenar el ancho, lo que
+   activa el loop. */
+.chip-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) 0; /* espacio para el resplandor del hover */
+}
+
+.chip-marquee--ready .chip-list {
+  flex-wrap: nowrap;
+  width: max-content;
+  /* La duración la define main.js a partir del ancho de la pista, para que
+     la velocidad se mantenga igual sin importar cuántas copias hicieron falta. */
+  animation: chip-marquee var(--marquee-duration, 30s) linear infinite;
+}
+
+.chip-list li {
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --chip-bg-hover: rgba(255, 255, 255, 0.1);
+  --chip-border-hover: rgba(255, 255, 255, 0.45);
+  --chip-shine: rgba(255, 255, 255, 0.35);
+
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  /* Espaciado vía margin, no `gap`: con la técnica de pista duplicada de
+     abajo, `gap` deja un medio-espacio extra en el punto de loop al 50%
+     (no está "dentro" de ninguna de las dos copias), lo cual se percibe
+     como un tirón/corte. Un margen al final de cada ítem — incluyendo el
+     último de cada copia — es parte de la caja propia de ese ítem, así las
+     copias encajan exactamente en el punto medio. */
+  margin-right: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  cursor: default;
+  transition:
+    color 0.3s var(--ease-default),
+    background-color 0.3s var(--ease-default),
+    border-color 0.3s var(--ease-default),
+    box-shadow 0.3s var(--ease-default);
+}
+
+[data-theme="light"] .chip-list li {
+  --chip-bg: rgba(0, 0, 0, 0.03);
+  --chip-bg-hover: rgba(255, 255, 255, 0.7);
+  --chip-border-hover: rgba(0, 0, 0, 0.3);
+  --chip-shine: rgba(255, 255, 255, 0.9);
+}
+
+/* Brillo: una banda de luz diagonal estacionada fuera del borde izquierdo.
+   En hover se desliza hacia adentro y se detiene a la mitad de la pill; al
+   soltar se desliza de vuelta por donde entró (la transición vive en el
+   estado base, así corre en ambas direcciones). */
+.chip-list li::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(110deg, transparent 30%, var(--chip-shine) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.6s var(--ease-default);
+  pointer-events: none;
+}
+
+.chip-list li:hover {
+  color: var(--color-text);
+  background: var(--chip-bg-hover);
+  border-color: var(--chip-border-hover);
+  box-shadow: 0 0 18px rgba(255, 214, 10, 0.18);
+}
+
+.chip-list li:hover::after {
+  transform: translateX(0);
+}
+
+/* main.js llena la pista con 2N copias del conjunto; hacer loop exactamente
+   en -50% alinea el final de la copia N con el inicio de la copia N+1, así
+   el reinicio a 0% es invisible y nunca hay un espacio vacío. */
+@keyframes chip-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* --- Contenedores de grid --- */
+.card-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* --- Encabezado de Services --- */
+.services-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title title"
+    "desc  btn";
+  align-items: center;
+  column-gap: var(--space-5);
+  row-gap: var(--space-5);
+  max-width: 900px;
+  margin: 0 auto var(--space-7);
+}
+
+.services-head__title {
+  grid-area: title;
+  max-width: 19ch;
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(2rem, 2.5vw + 1rem, 3.125rem);
+  line-height: 1.15;
+  color: var(--color-text);
+}
+
+.services-head__title em {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.services-head__desc {
+  grid-area: desc;
+  max-width: 34rem;
+  margin: 0 0 0 clamp(0px, 8vw, 7.5rem);
+  color: var(--color-text-muted);
+}
+
+.services-head__btn {
+  grid-area: btn;
+  padding: var(--space-3) var(--space-5);
+  border: 1.5px solid var(--color-text);
+  border-radius: var(--radius-pill);
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: var(--color-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.3s var(--ease-default),
+    color 0.3s var(--ease-default),
+    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.services-head__btn:hover,
+.services-head__btn:focus-visible {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.services-head__btn:active {
+  transform: scale(0.97);
+}
+
+/* --- Lista de Services: filas grandes, título rotativo, ícono que gira con scroll --- */
+.services-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.service-row {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.2vw, 1.25rem);
+  text-decoration: none;
+  color: var(--color-text-muted);
+  transition: color 0.35s var(--ease-default);
+}
+
+.service-row:hover,
+.service-row:focus-visible {
+  color: var(--color-text);
+}
+
+.service-row__icon {
+  flex: 0 0 auto;
+  width: clamp(2rem, 5vw, 4.375rem);
+  height: clamp(2rem, 5vw, 4.375rem);
+}
+
+/* Ventana de la altura de una línea; el duplicado espera justo debajo. */
+.service-row__title {
+  display: block;
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(2rem, 6vw, 6.25rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.service-row__roll {
+  position: relative;
+  display: block;
+  will-change: transform;
+  transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.service-row__roll-dup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  color: var(--color-text);
+}
+
+/* Rotar solo con un puntero real — en touch, el hover se queda pegado tras un tap. */
+@media (hover: hover) and (pointer: fine) {
+  .service-row:hover .service-row__roll {
+    transform: translateY(-100%);
+  }
+}
+
+.service-row:focus-visible .service-row__roll {
+  transform: translateY(-100%);
+}
+
+/* --- Para quién trabajo --- */
+.who-i-build-for {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  margin-top: var(--space-7);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.who-i-build-for h3 {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 500;
+}
+
+.who-i-build-for p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .services-head {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "desc"
+      "btn";
+    row-gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .services-head__desc {
+    margin-left: 0;
+  }
+
+  .services-head__btn {
+    text-align: center;
+  }
+
+  .services-list {
+    gap: var(--space-4);
+  }
+
+  .service-row {
+    color: var(--color-text);
+  }
+
+  .service-row__title {
+    white-space: normal;
+    text-align: center;
+  }
+
+  .who-i-build-for {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Statement: texto sobre una curva, fijo ("pinned") mientras se hace scroll ---
+   Por defecto (sin JS / movimiento reducido): un encabezado simple y centrado.
+   animations.js agrega .statement--animated para intercambiar la curva SVG y
+   darle a la pista sus 300vh de scroll para el escenario fijo. */
+.statement {
+  padding: 0;
+}
+
+.statement__stage {
+  position: relative;
+  padding: var(--space-7) var(--space-4);
+  overflow: hidden;
+}
+
+.statement__text {
+  max-width: 18ch;
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 6vw, 5.5rem);
+  line-height: 1.05;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.statement__curve {
+  display: none;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* El tamaño está en unidades de usuario SVG (el viewBox mide 1516 de ancho),
+   así el texto escala con el viewport en vez de con px de CSS. */
+.statement__curve text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 150px;
+  text-transform: uppercase;
+  fill: currentColor;
+}
+
+.statement--animated .statement__track {
+  height: 300vh;
+}
+
+.statement--animated .statement__stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+  padding: 0;
+}
+
+.statement--animated .statement__curve {
+  display: block;
+}
+
+/* El encabezado se mantiene en el DOM para lectores de pantalla, la curva es decorativa. */
+.statement--animated .statement__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .statement__curve text {
+    font-size: 420px;
+  }
+}
+
+/* --- Filas de Works (una por proyecto) --- */
+.works-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.work-row__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "tag   ."
+    "title link";
+  align-items: end;
+  row-gap: var(--space-3);
+  column-gap: var(--space-4);
+}
+
+.work-row__tag {
+  grid-area: tag;
+  justify-self: start;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-small);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.work-row__title {
+  grid-area: title;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(2rem, 2.5vw + 1rem, 3.125rem);
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.work-row__link {
+  grid-area: link;
+  padding-bottom: var(--space-1);
+  font-size: var(--fs-small);
+  color: var(--color-text);
+  text-underline-offset: 0.25em;
+  white-space: nowrap;
+}
+
+.work-row__link:hover,
+.work-row__link:focus-visible {
+  color: var(--color-accent);
+}
+
+.work-row__summary {
+  margin: var(--space-2) 0 var(--space-5);
+  max-width: 560px;
+  color: var(--color-text-muted);
+}
+
+.work-row__media {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+}
+
+/* --- Media de Works: reveal con clip-path + zoom en hover ---
+   Visible por defecto, para que la página siga funcionando sin JS / GSAP.
+   animations.js agrega .works-list--reveal a la lista (solo si el
+   movimiento está permitido) para armar el estado oculto, y luego
+   .is-in-view a cada media al hacer scroll. */
+.work-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: border-radius 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.work-media--side {
+  aspect-ratio: auto; /* se estira hasta la altura de la imagen principal */
+}
+
+.work-media__inner {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  clip-path: inset(0 round 0.5rem);
+  will-change: clip-path, transform;
+  transition:
+    clip-path 1.1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Llena el marco; cambiar luego por <img> con object-fit: cover. */
+.work-media__inner > * {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Armado: oculto desde la esquina superior izquierda, imagen ligeramente ampliada. */
+.works-list--reveal .work-media__inner {
+  clip-path: inset(0 100% 100% 0 round 0.5rem);
+}
+
+.works-list--reveal .work-media__inner > * {
+  transform: scale(1.14);
+}
+
+/* En vista: se abre en barrido hacia la esquina inferior derecha mientras la imagen se asienta. */
+.works-list--reveal .work-media.is-in-view .work-media__inner {
+  clip-path: inset(0 round 0.5rem);
+}
+
+.works-list--reveal .work-media.is-in-view .work-media__inner > * {
+  transform: scale(1);
+}
+
+/* La imagen lateral arranca un instante después que la principal. */
+.works-list--reveal .work-media--side .work-media__inner,
+.works-list--reveal .work-media--side .work-media__inner > * {
+  transition-delay: 0.15s;
+}
+
+/* Hover: las esquinas se cuadran y la imagen hace zoom. */
+.work-media:hover,
+.work-media:focus-visible {
+  border-radius: 0;
+}
+
+.work-media:hover .work-media__inner,
+.work-media:focus-visible .work-media__inner {
+  transform: scale(1.12);
+  transition-delay: 0s;
+}
+
+@media (max-width: 768px) {
+  .works-list {
+    gap: var(--space-6);
+  }
+
+  .work-row__head {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "tag   link"
+      "title title";
+  }
+
+  .work-row__media {
+    grid-template-columns: 1fr;
+  }
+
+  .work-media--main {
+    aspect-ratio: 1 / 1;
+  }
+
+  .work-media--side {
+    height: 120px;
+  }
+}
+
+.media-placeholder {
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-accent-text);
+  background: linear-gradient(135deg, var(--color-accent), #ff9f1c);
+}
+
+.media-placeholder--alt {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  background: linear-gradient(160deg, var(--color-bg-elevated-2), var(--color-bg-elevated));
+  border: 1px solid var(--color-border);
+}
+
+/* --- CTA hacia works --- */
+.works-cta {
+  text-align: center;
+}
+
+/* Sin tarjeta: solo el encabezado sobre el fondo de la página. */
+.works-cta__inner {
+  padding: var(--space-6) var(--space-4);
+}
+
+.works-cta h2 {
+  max-width: 22ch;
+  margin: 0 auto var(--space-5);
+}
+
+/* --- Testimonials: abanico de tarjetas ---
+   Por defecto (sin JS, movimiento reducido, < 992px): una grilla simple de
+   tarjetas. animations.js agrega .testimonial-fan--orbit en escritorio para
+   convertir cada .testimonial-orbit en un cuadrado de 300vw centrado bajo
+   su tarjeta, así rotar el wrapper balancea la tarjeta a lo largo de un
+   arco muy amplio. */
+.testimonial-fan {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.testimonial-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 22rem;
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-elevated);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.testimonial-card__step {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+[data-theme="light"] .testimonial-card__step {
+  color: var(--color-text-muted); /* el lima se ve demasiado pálido sobre blanco */
+}
+
+.testimonial-card blockquote {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 0.8vw + 1rem, 1.625rem);
+  line-height: 1.3;
+}
+
+.testimonial-card footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: auto;
+  font-size: var(--fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.testimonial-card footer strong {
+  color: var(--color-text);
+}
+
+/* Modo órbita de escritorio */
+.testimonial-fan--orbit {
+  position: relative;
+  display: block;
+  height: 44rem;
+  /* Se extiende hasta los bordes del viewport para que las tarjetas puedan
+     entrar balanceándose desde fuera de pantalla. */
+  margin-inline: calc(50% - 50vw);
+  overflow: hidden;
+}
+
+.testimonial-fan--orbit .testimonial-orbit {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 300vw;
+  height: 300vw;
+  margin-left: -150vw;
+  pointer-events: none;
+}
+
+.testimonial-fan--orbit .testimonial-card {
+  position: absolute;
+  top: 22rem; /* centro vertical del abanico */
+  left: 50%;
+  width: 22.5rem;
+  height: 31rem;
+  margin: -15.5rem 0 0 -11.25rem;
+  pointer-events: auto;
+}
+
+/* --- Footer de cierre (aliados + contacto) ---
+   Siempre oscuro, en ambos temas, para que se lea como el final de la
+   página. .closing__layer--spot es un clon de la capa, pintado en el color
+   de acento y enmascarado a un círculo en --spot-x / --spot-y (animations.js). */
+.closing {
+  --closing-bg: #0f0f0f;
+  --closing-text: #f1f1f1;
+  --closing-muted: #6b6b6b;
+  --closing-border: rgba(255, 255, 255, 0.12);
+
+  position: relative;
+  overflow: hidden;
+  background: var(--closing-bg);
+  color: var(--closing-text);
+}
+
+.closing__layer {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--space-4) calc(var(--space-7) + var(--space-5));
+}
+
+.closing__title {
+  display: flex;
+  flex-direction: column;
+  /* Ocupa el espacio que antes tomaba el encabezado con corchetes {Aliados}, ya eliminado. */
+  margin: clamp(var(--space-5), 8vw, 6rem) 0 var(--space-6) -0.06em;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(2.25rem, 6.2vw, 8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: var(--closing-text);
+}
+
+.closing__partners {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  margin: 0 0 var(--space-7);
+  padding: var(--space-4) 0 0;
+  border-top: 1px solid var(--closing-border);
+}
+
+.partner-logo {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  letter-spacing: 0.02em;
+  color: var(--closing-muted);
+}
+
+.closing__bottom {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  font-size: var(--fs-small);
+}
+
+.closing__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.closing__col--end {
+  align-items: flex-end;
+  text-align: right;
+  color: var(--closing-muted);
+}
+
+.closing__label {
+  color: var(--closing-muted);
+}
+
+.closing__links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+}
+
+.closing a {
+  color: var(--closing-text);
+  text-decoration: none;
+}
+
+.closing a:hover,
+.closing a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.closing__cta {
+  font-size: var(--fs-h3);
+}
+
+/* Copia "spotlight": mismo layout encima, color de acento, máscara circular. */
+.closing__layer--spot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --spot-x: 50%;
+  --spot-y: 50%;
+  --spot-r: 0px;
+  -webkit-mask-image: radial-gradient(circle var(--spot-r) at var(--spot-x) var(--spot-y), #000 92%, transparent 100%);
+  mask-image: radial-gradient(circle var(--spot-r) at var(--spot-x) var(--spot-y), #000 92%, transparent 100%);
+}
+
+.closing__layer--spot,
+.closing__layer--spot .closing__title,
+.closing__layer--spot .partner-logo,
+.closing__layer--spot .closing__label,
+.closing__layer--spot .closing__col--end,
+.closing__layer--spot a {
+  color: var(--color-accent);
+}
+
+.closing__layer--spot .closing__partners {
+  border-top-color: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+  .closing__layer {
+    padding-inline: var(--space-3);
+  }
+
+  .closing__bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--space-5);
+  }
+
+  .closing__col--end {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* --- Preloader (pantalla de carga) --- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preloader);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: var(--color-bg);
+  transition: opacity 0.4s var(--ease-default);
+}
+
+.preloader[data-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preloader__count {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.preloader__label {
+  font-size: var(--fs-small);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* --- Transición de página de 6 paneles --- */
+.panel-transition {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-panels);
+  display: flex;
+  pointer-events: none;
+}
+
+.panel-transition__panel {
+  flex: 1 0 calc(100% / 6);
+  background: var(--color-bg);
+  transform: scaleY(1);
+  transform-origin: top;
+}
+
+/* Los paneles empiezan cubriendo la pantalla para que nunca haya un
+   parpadeo de contenido sin revelar antes de que preloader.js ejecute
+   revealOnEntry(). */
+.panel-transition[data-state="revealed"] .panel-transition__panel {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--duration-panel) var(--ease-default);
+}
+
+.panel-transition[data-state="covering"] .panel-transition__panel {
+  transform: scaleY(1);
+  transform-origin: top;
+  transition: transform var(--duration-panel) var(--ease-default);
+}
+
+/* Pequeño desfase entre paneles para que no se muevan como un solo bloque plano. */
+.panel-transition__panel:nth-child(1) { transition-delay: 0ms; }
+.panel-transition__panel:nth-child(2) { transition-delay: 40ms; }
+.panel-transition__panel:nth-child(3) { transition-delay: 80ms; }
+.panel-transition__panel:nth-child(4) { transition-delay: 120ms; }
+.panel-transition__panel:nth-child(5) { transition-delay: 160ms; }
+.panel-transition__panel:nth-child(6) { transition-delay: 200ms; }
