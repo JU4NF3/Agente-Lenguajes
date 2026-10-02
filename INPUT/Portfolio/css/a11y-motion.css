@@ -1,0 +1,52 @@
+/* Fuente única de verdad para el override CSS de prefers-reduced-motion.
+   El JS verifica la misma media query de forma independiente en
+   hero-shader.js, preloader.js y animations.js (gsap.matchMedia) — este
+   archivo solo cubre lo que controla el CSS puro (transiciones de panel,
+   deslizamiento del menú móvil, micro-movimiento en hover, scroll suave). */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .panel-transition__panel,
+  .mobile-menu,
+  .preloader,
+  .skip-link,
+  .btn-primary {
+    transition-duration: 0.01ms !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  /* Indicador de nav: salta al enlace activo en vez de deslizarse. */
+  .nav-pill__indicator {
+    transition: none !important;
+  }
+
+  /* Filas de servicios: el título cambia al instante en vez de rotar. */
+  .service-row__roll {
+    transition: none !important;
+  }
+
+  /* Media de works: siempre completamente revelado, sin zoom en hover. */
+  .work-media,
+  .work-media__inner,
+  .work-media__inner > * {
+    transition: none !important;
+  }
+
+  .work-media__inner {
+    clip-path: inset(0 round 0.5rem) !important;
+  }
+
+  .work-media__inner,
+  .work-media__inner > * {
+    transform: none !important;
+  }
+}
