@@ -5,6 +5,119 @@
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 16px;
+      color: #222;
+    }
+
+    #btn-traer {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #4f46e5;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    #resultado {
+      margin-top: 16px;
+    }
+
+    /* Grid: mete tantas cards por fila como quepan (mínimo 220px cada una).
+       En el celular queda 1 por fila; en el computador, 3 o más. */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      overflow: hidden; /* recorta la imagen con las esquinas redondeadas de la card */
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      /* transition: hace que el cambio del hover sea suave y no de golpe */
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* hover: la card sube un poco y la sombra se hace más grande */
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover; /* recorta la foto sin deformarla */
+      display: block;
+    }
+
+    .card-body {
+      padding: 12px 16px 16px;
+    }
+
+    .card-body h3 {
+      margin: 0 0 4px;
+      font-size: 1.05rem;
+    }
+
+    .card-body p {
+      margin: 4px 0;
+      font-size: 0.9rem;
+    }
+
+    .descripcion {
+      color: #666;
+    }
+
+    /* ".card-body .precio" en vez de solo ".precio" para que gane sobre
+       ".card-body p" (más específico = tiene prioridad) */
+    .card-body .precio {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #4f46e5;
+    }
+
+    /* precio anterior: pequeño, gris y tachado */
+    .card-body .precio-antes {
+      margin-bottom: 0;
+      color: #999;
+      text-decoration: line-through;
+    }
+
+    /* etiqueta roja "-15%" al lado del precio nuevo */
+    .badge-descuento {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #dc2626;
+      color: white;
+      font-size: 0.8rem;
+      vertical-align: middle;
+    }
+
+    .disponible { color: #15803d; }
+    .agotado { color: #b91c1c; }
+
+    /* cada categoría como una "etiqueta" pequeña */
+    .categorias span {
+      display: inline-block;
+      margin: 4px 4px 0 0;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      font-size: 0.8rem;
+    }
+  </style>
 </head>
 <body>
 

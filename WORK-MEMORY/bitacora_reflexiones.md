@@ -73,3 +73,12 @@ flip cards, que Claude interpretó y adaptó a nuestras cartas; me gustó mucho 
 dando parámetros adicionales que perfeccionaron el juego (puntaje por tiempo, ranking,
 intentos). Además lo conectamos con el login: registro de usuarios y guardado de sus datos y
 de sus partidas en JSON. La clase me gustó bastante.
+
+## 2026-10-16
+
+Ayer y hoy aprendí a usar bases de datos, en este caso con Supabase, con unos ejemplos
+pequeños. Hoy unimos `async` y `await`, que sirven para pedirle los datos a la base de datos
+y esperar la respuesta. Básicamente vimos el uso de la base de datos y cómo traer los datos
+desde ahí en vez de usar localStorage, y que esto es lo que se usa para hacer e-commerce
+reales. En `prueba.html` pasamos de una lista a una tabla y luego a cards con imagen, precio
+antes/ahora con descuento y hover. Me ha gustado bastante, la verdad.
