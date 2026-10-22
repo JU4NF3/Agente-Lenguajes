@@ -82,3 +82,10 @@ y esperar la respuesta. Básicamente vimos el uso de la base de datos y cómo tr
 desde ahí en vez de usar localStorage, y que esto es lo que se usa para hacer e-commerce
 reales. En `prueba.html` pasamos de una lista a una tabla y luego a cards con imagen, precio
 antes/ahora con descuento y hover. Me ha gustado bastante, la verdad.
+
+## 2026-10-22
+
+Hoy vimos CRUD en la base de datos, por ahora solo el Create: aprendimos a subir datos desde
+el código a Supabase con `insert`, primero con un producto fijo y luego con un formulario en
+`prueba2.html`. También repasamos `async` y `await`. En el camino salió un error de
+codificación (`Ã¡` en el nombre de la tabla) que se arregló con `<meta charset="UTF-8">`.

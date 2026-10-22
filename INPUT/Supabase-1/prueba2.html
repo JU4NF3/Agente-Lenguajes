@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- charset UTF-8: sin esto la "á" de 'productos_práctica' se daña (Ã¡) -->
+  <meta charset="UTF-8">
+
+  <!-- CDN: trae la librería de Supabase ANTES que nuestros propios
+       scripts — sin esta línea, "supabase.createClient" no existiría
+       todavía cuando supabaseClient.js intente usarlo -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 16px;
+    }
+
+    /* flex en columna: un campo debajo del otro */
+    #form-producto {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+      margin-top: 24px;
+    }
+
+    #form-producto label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+
+    /* el checkbox va al lado del texto, no debajo */
+    #form-producto label.check {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    #form-producto input,
+    #form-producto textarea {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    #form-producto button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #4f46e5;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="btn-traer">Traer productos</button>
+  <div id="resultado"></div>
+  <div id="resultado2"></div>
+  <div id="resultado3"></div>
+  <div id="resultado4"></div>
+
+  <!-- Formulario: un input por cada columna de "productos_práctica".
+       El "name" de cada input es igual al nombre de la columna, así en el
+       JS es fácil saber qué valor va en qué campo. -->
+  <form id="form-producto">
+    <h2>Agregar producto</h2>
+
+    <label>Nombre
+      <!-- required: el navegador no deja enviar el form si está vacío -->
+      <input type="text" name="nombre" required>
+    </label>
+
+    <label>Descripción
+      <textarea name="descripcion" rows="2"></textarea>
+    </label>
+
+    <label>Precio
+      <input type="number" name="precio" min="0" required>
+    </label>
+
+    <label>Unidades
+      <input type="number" name="unidades" min="0" value="1" required>
+    </label>
+
+    <label>Descuento (%)
+      <!-- se escribe 15 y en el JS se convierte a 0.15, como está en la tabla -->
+      <input type="number" name="descuento" min="0" max="100" value="0">
+    </label>
+
+    <label>Categorías (separadas por coma)
+      <input type="text" name="categorias" placeholder="tecnología, audio">
+    </label>
+
+    <label>URL de la imagen
+      <input type="url" name="img_URL" placeholder="https://...">
+    </label>
+
+    <label class="check">
+      <input type="checkbox" name="disponible" checked> Disponible
+    </label>
+
+    <button type="submit" id="btn-agregar">Agregar producto</button>
+  </form>
+
+  <div id="notificación"></div>
+
+  <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
+       conectado a tu proyecto de Supabase. Lo vamos a usar en
+       prueba.js, por eso tiene que cargarse ANTES que ese archivo -->
+  <script src="js/supabaseClient.js"></script>
+  <!-- prueba.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
+  <script src="js/prueba2.js"></script>
+</body>
+</html>

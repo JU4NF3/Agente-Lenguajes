@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- charset UTF-8: le dice al navegador cómo leer las letras de esta
+       página y de sus scripts. Sin esta línea, la "á" de
+       'productos_práctica' llegaba a Supabase como "Ã¡" -->
+  <meta charset="UTF-8">
+
   <!-- CDN: trae la librería de Supabase ANTES que nuestros propios
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
