@@ -89,3 +89,10 @@ Hoy vimos CRUD en la base de datos, por ahora solo el Create: aprendimos a subir
 el código a Supabase con `insert`, primero con un producto fijo y luego con un formulario en
 `prueba2.html`. También repasamos `async` y `await`. En el camino salió un error de
 codificación (`Ã¡` en el nombre de la tabla) que se arregló con `<meta charset="UTF-8">`.
+
+## 2026-10-23
+
+Hoy seguimos con el CRUD y vimos el Read: agregamos un filtro con un campo de búsqueda en
+`prueba2.html` que busca por id (`.eq().single()`) si escribo un número, o por nombre
+(`.ilike()`) si escribo texto. En el camino salió un problema de scope: las funciones de
+búsqueda estaban dentro del listener del form y no se podían usar desde afuera.
