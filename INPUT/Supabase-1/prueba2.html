@@ -46,6 +46,23 @@
       font: inherit;
     }
 
+    /* flex en fila: el campo y el botón uno al lado del otro */
+    #form-filtro {
+      display: flex;
+      gap: 8px;
+      max-width: 400px;
+      margin: 24px 0 8px; /* separado de los resultados de "Traer productos" */
+    }
+
+    #form-filtro input {
+      flex: 1; /* el campo ocupa todo el espacio que deja el botón */
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    #form-filtro button,
     #form-producto button {
       padding: 10px;
       border: none;
@@ -64,6 +81,14 @@
   <div id="resultado2"></div>
   <div id="resultado3"></div>
   <div id="resultado4"></div>
+
+  <!-- Filtro: un solo campo. Si escribes un número busca por id,
+       si escribes texto busca por nombre (ver prueba2.js) -->
+  <form id="form-filtro">
+    <input type="search" id="busqueda" placeholder="Id o nombre del producto">
+    <button type="submit">Filtrar</button>
+  </form>
+  <div id="resultado-filtro"></div>
 
   <!-- Formulario: un input por cada columna de "productos_práctica".
        El "name" de cada input es igual al nombre de la columna, así en el

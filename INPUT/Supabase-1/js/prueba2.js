@@ -132,3 +132,75 @@ formProducto.addEventListener('submit', async (evento) => {
     document.getElementById('notificación').textContent = 'No se pudo agregar (mira la consola con F12)';
   }
 });
+// ↑ aquí TERMINA el listener del form. Antes las dos funciones de abajo
+// estaban ADENTRO de este listener, así que solo existían mientras corría
+// el submit — el botón de filtrar no las podía ver (scope). Ahora quedan
+// en el nivel superior del archivo y cualquier listener las puede usar.
+
+//BÚSQUEDA
+async function buscarProductoPorId(id) {
+  const { data, error } = await db
+    .from('productos_práctica')
+    .select('*')
+    .eq('id', id)    // eq = "equal" (igual a) — equivalente a find(p => p.id === id)
+    .single();         // single() = "espero exactamente una fila, dámela
+                        // como objeto, no como array de un elemento"
+
+  if (error) return null;
+  return data;
+}
+
+async function buscarProductosPorNombre(texto) {
+  const { data, error } = await db
+    .from('productos_práctica')
+    .select('*')
+    .ilike('nombre', `%${texto}%`);
+    // ilike = "like" insensible a mayúsculas/minúsculas.
+    // los símbolos % significan "cualquier texto antes/después" —
+    // equivalente a .toLowerCase().includes(texto)
+
+  if (error) return [];
+  return data;
+}
+
+//FILTRO
+const formFiltro = document.getElementById('form-filtro');
+
+formFiltro.addEventListener('submit', async (evento) => {
+  evento.preventDefault(); // igual que en el form de agregar: no recargar
+
+  // trim() quita espacios de los lados: "  3 " → "3"
+  const texto = document.getElementById('busqueda').value.trim();
+  const contenedor = document.getElementById('resultado-filtro');
+
+  if (texto === '') {
+    contenedor.textContent = 'Escribe un id o un nombre para buscar.';
+    return;
+  }
+
+  contenedor.textContent = 'Buscando...';
+
+  // Number("3") → 3 (entero) | Number("silla") → NaN (no es entero).
+  // Así decidimos qué función llamar con un solo campo.
+  const comoNumero = Number(texto);
+  let productos;
+
+  if (Number.isInteger(comoNumero)) {
+    const producto = await buscarProductoPorId(comoNumero);
+    // buscarProductoPorId devuelve UN objeto (o null), no un array.
+    // Lo metemos en un array para pintar ambos casos con el mismo código.
+    productos = producto ? [producto] : [];
+  } else {
+    productos = await buscarProductosPorNombre(texto); // ya es un array
+  }
+
+  if (productos.length === 0) {
+    contenedor.textContent = 'No se encontraron productos.';
+    return;
+  }
+
+  contenedor.innerHTML =
+    '<ul>' +
+    productos.map(p => `<li>#${p.id} — ${p.nombre} — $${p.precio}</li>`).join('') +
+    '</ul>';
+});
