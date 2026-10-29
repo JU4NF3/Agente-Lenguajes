@@ -1,139 +1,1510 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <!-- charset UTF-8: sin esto la "á" de 'productos_práctica' se daña (Ã¡) -->
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario</title>
 
   <!-- CDN: trae la librería de Supabase ANTES que nuestros propios
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- TIPOGRAFÍA (estilo estudio de arquitectura):
+       Inter Tight → grotesca limpia y apretada para títulos y texto
+       IBM Plex Mono → monoespaciada para etiquetas, ids y precios -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Va en el <head> y ANTES del CSS: aplica el tema guardado antes de que
+       se pinte la página, así no se ve un "parpadeo" blanco al recargar -->
+  <script>
+    const temaGuardado = localStorage.getItem('tema');
+    // si nunca eligió, usamos el tema del sistema operativo
+    const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (temaGuardado === 'oscuro' || (temaGuardado === null && prefiereOscuro)) {
+      document.documentElement.dataset.tema = 'oscuro'; // → <html data-tema="oscuro">
+    }
+  </script>
+
   <style>
+    /* ============================================================
+       VARIABLES: todo el CSS usa var(--nombre). Para cambiar de tema
+       solo cambiamos estos valores, no cada regla.
+       Idea del diseño: blanco y negro, líneas finas, cero bordes
+       redondeados, mucho espacio y tipografía grande.
+       ============================================================ */
+    :root {
+      --sans: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+      --fondo: #ffffff;
+      --texto: #0a0a0a;
+      --suave: #636363;          /* texto secundario: 5.9:1 sobre blanco */
+      --linea: #0a0a0a;          /* líneas divisorias principales */
+      --linea-suave: #e3e3e3;
+
+      --boton-fondo: #0a0a0a;    /* botón negro con letra blanca... */
+      --boton-texto: #ffffff;
+      --boton-borde: #0a0a0a;
+      --boton-hover-fondo: #ffffff;   /* ...que se invierte al pasar el mouse */
+      --boton-hover-texto: #0a0a0a;
+
+      --input-fondo: #ffffff;
+      --input-texto: #0a0a0a;
+      --input-borde: #a3a3a3;
+
+      --switch-apagado: #c7c7c7;
+      --switch-encendido: #0a0a0a;
+      --bolita-apagado: #ffffff;
+      --bolita-encendido: #ffffff;
+
+      --peligro: #b91c1c;        /* rojo: 6.5:1 sobre blanco */
+      --peligro-hover: #fdeceb;
+    }
+
+    /* MODO OSCURO: página negra, pero tabla, botones y campos blancos con
+       letra negra (contraste 19:1). El texto suelto va en gris muy claro. */
+    :root[data-tema="oscuro"] {
+      color-scheme: dark; /* barras de scroll también oscuras */
+      --fondo: #0b0b0b;
+      --texto: #f2f2f2;
+      --suave: #a6a6a6;          /* 8.6:1 sobre el negro */
+      --linea: #f2f2f2;
+      --linea-suave: #2b2b2b;
+
+      --boton-fondo: #ffffff;
+      --boton-texto: #0a0a0a;
+      --boton-borde: #ffffff;
+      --boton-hover-fondo: #d4d4d4;   /* sigue siendo claro: la letra negra se lee igual */
+      --boton-hover-texto: #0a0a0a;
+
+      --input-fondo: #ffffff;
+      --input-texto: #0a0a0a;
+      --input-borde: #ffffff;
+
+      --switch-apagado: #4a4a4a;
+      --switch-encendido: #ffffff;
+      --bolita-apagado: #ffffff;
+      --bolita-encendido: #0a0a0a;
+    }
+
+    /* ============================ BASE ============================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: system-ui, sans-serif;
-      padding: 16px;
+      margin: 0;
+      padding: 0 clamp(16px, 4vw, 56px) 80px; /* márgenes laterales que crecen con la pantalla */
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      background: var(--fondo);
+      color: var(--texto);
+      transition: background 0.25s, color 0.25s;
     }
 
-    /* flex en columna: un campo debajo del otro */
-    #form-producto {
+    a {
+      color: inherit;
+    }
+
+    /* contorno visible al navegar con Tab, en todo lo que se puede enfocar */
+    :focus-visible {
+      outline: 2px solid var(--texto);
+      outline-offset: 2px;
+    }
+
+    /* etiqueta pequeña en mayúsculas y monoespaciada (como "FEATURED") */
+    .rotulo,
+    label,
+    .tabla-productos th {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ======================= BARRA SUPERIOR ======================= */
+    /* sticky: se queda pegada arriba al hacer scroll */
+    .barra-superior {
+      position: sticky;
+      top: 0;
+      z-index: 30;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-width: 400px;
-      margin-top: 24px;
-    }
-
-    #form-producto label {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9rem;
-    }
-
-    /* el checkbox va al lado del texto, no debajo */
-    #form-producto label.check {
-      flex-direction: row;
       align-items: center;
+      gap: 24px;
+      padding: 18px 0;
+      background: var(--fondo);
+      border-bottom: 1px solid var(--linea);
     }
 
-    #form-producto input,
-    #form-producto textarea {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font: inherit;
+    /* "logo" hecho solo con texto, grueso y apretado */
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      text-decoration: none;
+      line-height: 1;
+      transition: letter-spacing 0.3s;
     }
 
-    /* flex en fila: el campo y el botón uno al lado del otro */
+    /* al pasar el mouse las letras del logo se separan un poco */
+    .logo:hover {
+      letter-spacing: -0.02em;
+    }
+
+    #btn-tema {
+      margin-left: auto; /* lo empuja a la derecha */
+    }
+
+    /* ícono del tema: un círculo mitad lleno, hecho con CSS (sin emojis) */
+    #btn-tema::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 8px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+      vertical-align: -1px;
+    }
+
+    /* ========================== BÚSQUEDA ========================== */
     #form-filtro {
       display: flex;
-      gap: 8px;
-      max-width: 400px;
-      margin: 24px 0 8px; /* separado de los resultados de "Traer productos" */
+      flex: 1;
+      gap: 0; /* pegados, como una sola pieza */
+      max-width: 620px;
+    }
+
+    /* ===================== LISTAS DESPLEGABLES ===================== */
+    /* Las crea el JS (mejorarSelect) a partir de cada <select>, porque
+       las opciones de un <select> normal no se pueden estilizar.
+       Hay dos: "Nombre / ID" en la búsqueda y "Elige un producto" en eliminar. */
+    .selector {
+      position: relative; /* la lista se ubica justo debajo del botón */
+      display: flex;
+    }
+
+    /* BOTÓN BASE (el de eliminar): como un campo de texto redondeado */
+    .selector-boton {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--input-borde);
+      border-radius: 12px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .selector-boton:hover {
+      border-color: #0a0a0a;
+    }
+
+    /* el texto largo se corta con "..." */
+    .selector-valor {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* "Elige un producto..." mientras no se elija nada: en gris */
+    .selector-valor.sin-elegir {
+      color: #737373;
+    }
+
+    /* flechita (chevron) hecha con dos bordes; gira al abrir la lista */
+    .selector-boton::after {
+      content: '';
+      flex-shrink: 0;
+      width: 6px;
+      height: 6px;
+      margin-top: -3px;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: rotate(45deg);
+      transition: transform 0.25s;
+    }
+
+    .selector-boton[aria-expanded="true"]::after {
+      transform: rotate(225deg); /* apunta hacia arriba */
+      margin-top: 3px;
+    }
+
+    /* BOTÓN DE LA BÚSQUEDA: punta izquierda de la pastilla de tres piezas.
+       "#form-filtro .selector-boton" le gana a la regla general
+       "#form-filtro button" (una clase pesa más que una etiqueta) */
+    #form-filtro .selector-boton {
+      width: auto;
+      justify-content: flex-start;
+      padding: 10px 16px 10px 20px;
+      border: 1px solid var(--input-borde);
+      border-right: none;
+      border-radius: 999px 0 0 999px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      box-shadow: none;
+      transform: none;
+    }
+
+    #form-filtro .selector-boton:hover {
+      background: #f0f0f0;
+      color: var(--input-texto);
+      border-color: var(--input-borde);
+    }
+
+    /* en oscuro: línea gris para separarlo del campo blanco */
+    :root[data-tema="oscuro"] #form-filtro .selector-boton {
+      border-right: 1px solid #c7c7c7;
+    }
+
+    /* LA LISTA: tarjeta blanca redondeada que aparece deslizándose.
+       Si hay muchas opciones (productos), se desplaza por dentro. */
+    .selector-lista {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 15;
+      min-width: max(100%, 170px); /* al menos tan ancha como el botón */
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 0;
+      padding: 6px;
+      list-style: none;
+      background: #ffffff;
+      color: #0a0a0a;
+      border: 1px solid #d4d4d4;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+      transform-origin: top left;
+      animation: desplegar 0.2s ease;
+    }
+
+    @keyframes desplegar {
+      from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* cada opción ocupa todo el ancho. Va con y sin "#form-filtro": con,
+       para ganarle a la regla general de botones de la búsqueda */
+    .selector-lista button,
+    #form-filtro .selector-lista button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: #0a0a0a;
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      text-transform: none;
+      letter-spacing: -0.01em;
+      text-align: left;
+      box-shadow: none;
+      cursor: pointer;
+      transition: background 0.15s, padding-left 0.15s;
+    }
+
+    /* opciones con foto (lista de productos) */
+    .selector-lista img,
+    .selector-lista .sin-foto {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .selector-lista .opcion-texto {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .selector-lista button:hover,
+    .selector-lista button:focus-visible,
+    #form-filtro .selector-lista button:hover,
+    #form-filtro .selector-lista button:focus-visible {
+      background: #f0f0f0;
+      color: #0a0a0a;
+      padding-left: 16px; /* se corre un poquito, igual que las sugerencias */
+      transform: none;
+      outline: none;
+    }
+
+    /* la opción elegida: en negrita y con un ✓ */
+    .selector-lista button[aria-selected="true"] {
+      font-weight: 600;
+    }
+
+    .selector-lista button[aria-selected="true"]::after {
+      content: '✓';
+      margin-left: auto; /* el ✓ se va al extremo derecho */
+    }
+
+    /* caja del buscador: "relative" para que la lista de sugerencias
+       se ubique justo debajo del campo */
+    .buscador {
+      flex: 1; /* ocupa todo el espacio que deja el botón */
+      position: relative;
+    }
+
+    #form-filtro input,
+    #form-producto input,
+    #form-producto textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--input-borde);
+      border-radius: 12px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #form-producto input:hover,
+    #form-producto textarea:hover {
+      border-color: #0a0a0a;
     }
 
     #form-filtro input {
-      flex: 1; /* el campo ocupa todo el espacio que deja el botón */
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font: inherit;
+      border-radius: 0; /* pieza del medio: recta */
+      border-right: none;
     }
 
-    #form-filtro button,
-    #form-producto button {
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #4f46e5;
-      color: white;
-      font-size: 1rem;
+    /* [type="submit"] le da más prioridad que la regla general de botones */
+    #form-filtro button[type="submit"] {
+      border-radius: 0 999px 999px 0; /* punta derecha de la pastilla */
+    }
+
+    /* en oscuro las tres piezas son blancas: una línea gris las separa */
+    :root[data-tema="oscuro"] #form-filtro input {
+      border-left: 1px solid #c7c7c7;
+      border-right: 1px solid #c7c7c7;
+    }
+
+    /* lista de sugerencias: flota encima del contenido de abajo */
+    #sugerencias {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      margin: 8px 0 0;
+      padding: 6px;
+      list-style: none;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      border: 1px solid #d4d4d4;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      animation: aparecer 0.18s ease; /* se despliega suavemente */
+    }
+
+    /* flex en fila: la foto a la izquierda y el nombre al lado */
+    #sugerencias li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
       cursor: pointer;
+      transition: background 0.15s, padding-left 0.15s;
+    }
+
+    #sugerencias li:hover,
+    #sugerencias li.activa {
+      padding-left: 16px; /* se corre un poquito a la derecha */
+    }
+
+    #sugerencias li:hover,
+    #sugerencias li.activa {
+      background: #f0f0f0;
+    }
+
+    #sugerencias img,
+    #sugerencias .sin-foto {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0; /* que la foto no se aplaste si el nombre es largo */
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    /* aparece desde un poquito más arriba */
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* la parte que coincide con lo escrito: subrayada en vez de color */
+    #sugerencias mark {
+      background: none;
+      color: inherit;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* =========================== BOTONES ========================== */
+    /* pastillas redondeadas, mayúsculas pequeñas; al pasar el mouse se
+       invierten y suben un poquito; al hacer clic se "hunden" */
+    #btn-tema,
+    #form-filtro button,
+    #form-producto button,
+    .btn-eliminar,
+    .btn-editar {
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    #btn-tema:hover,
+    #form-producto button:hover,
+    .btn-eliminar:hover,
+    .btn-editar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* :active = mientras se mantiene presionado */
+    #btn-tema:active,
+    #form-filtro button:active,
+    #form-producto button:active,
+    .btn-eliminar:active,
+    .btn-editar:active {
+      transform: scale(0.96);
+      box-shadow: none;
+    }
+
+    #btn-tema,
+    #form-filtro button,
+    #form-producto button,
+    .btn-eliminar {
+      padding: 11px 20px;
+      border: 1px solid var(--boton-borde);
+      border-radius: 999px; /* 999px = siempre forma de pastilla */
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+
+    #btn-tema:hover,
+    #form-filtro button:hover,
+    #form-producto button:hover {
+      background: var(--boton-hover-fondo);
+      color: var(--boton-hover-texto);
+    }
+
+    /* la flecha → avisa que el botón "lleva a algo" */
+    #form-filtro button[type="submit"]::after,
+    #btn-agregar::after {
+      content: '→';
+      display: inline-block;
+      margin-left: 6px;
+      transition: transform 0.2s;
+    }
+
+    /* la flecha avanza al pasar el mouse */
+    #form-filtro button[type="submit"]:hover::after,
+    #btn-agregar:hover::after {
+      transform: translateX(4px);
+    }
+
+    /* el círculo del botón de tema da media vuelta */
+    #btn-tema::before {
+      transition: transform 0.4s;
+    }
+
+    #btn-tema:hover::before {
+      transform: rotate(180deg);
+    }
+
+    #form-producto #btn-cancelar {
+      background: transparent;
+      color: var(--texto);
+      border-color: var(--suave);
+    }
+
+    :root[data-tema="oscuro"] #form-producto #btn-cancelar {
+      background: #d4d4d4;   /* botón claro con letra negra, como pediste */
+      color: #0a0a0a;
+      border-color: #d4d4d4;
+    }
+
+    /* Editar siempre vive dentro de algo blanco (tabla o tarjeta),
+       así que es igual en los dos temas: blanco con borde negro */
+    .btn-editar {
+      padding: 7px 14px;
+      border: 1px solid #0a0a0a;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #0a0a0a;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-editar:hover {
+      background: #0a0a0a;
+      color: #ffffff;
+    }
+
+    /* Eliminar: blanco con letra y borde rojos en los dos temas */
+    .btn-eliminar {
+      width: 100%;
+      background: #ffffff;
+      color: var(--peligro);
+      border-color: var(--peligro);
+    }
+
+    .btn-eliminar:hover {
+      background: var(--peligro-hover);
+    }
+
+    /* 1er clic: "¿Seguro?" en rojo lleno con letra blanca */
+    .btn-eliminar.confirmando,
+    .btn-eliminar.confirmando:hover {
+      background: var(--peligro);
+      color: #ffffff;
+    }
+
+    .btn-eliminar:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    /* ============================ HERO ============================ */
+    /* frase grande de entrada, como "Make is a different kind of..." */
+    /* min-height: alto de la pantalla menos la barra → al entrar SOLO se
+       ve la frase grande; los productos aparecen al hacer scroll */
+    .hero {
+      min-height: calc(100vh - 72px);
+      min-height: calc(100svh - 72px); /* svh: en celular no cuenta la barra del navegador */
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* centrado de arriba a abajo */
+      align-items: flex-start; /* pero pegado a la izquierda */
+      padding: 32px 0 48px;
+    }
+
+    /* "VER PRODUCTOS": texto subrayado, sin caja de botón.
+       La raya se dibuja con un background (no con text-decoration) para
+       poder animarla: al pasar el mouse se vacía hacia la derecha y se
+       vuelve a llenar desde la izquierda. */
+    #btn-ver-productos {
+      margin-top: 40px;
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--texto);
+      font: inherit;
+      font-size: clamp(1rem, 1.6vw, 1.25rem);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      animation: subir 0.9s 0.25s ease both; /* entra después de la frase */
+      transition: opacity 0.4s;
+    }
+
+    #btn-ver-productos span {
+      padding-bottom: 4px;
+      background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
+    }
+
+    #btn-ver-productos:hover span {
+      animation: subrayar 0.6s ease forwards;
+    }
+
+    @keyframes subrayar {
+      0%   { background-size: 100% 1px; background-position: right bottom; }
+      50%  { background-size: 0% 1px;   background-position: right bottom; }
+      51%  { background-size: 0% 1px;   background-position: left bottom; }
+      100% { background-size: 100% 1px; background-position: left bottom; }
+    }
+
+    /* la flecha rebota sola todo el tiempo, y baja más al pasar el mouse */
+    #btn-ver-productos::after {
+      content: '↓';
+      display: inline-block;
+      margin-left: 10px;
+      animation: rebotar 1.6s ease-in-out infinite;
+    }
+
+    #btn-ver-productos:hover::after {
+      animation-duration: 0.7s;
+    }
+
+    #btn-ver-productos:active {
+      opacity: 0.6;
+    }
+
+    /* cuando ya se abrió el contenido, el botón se desvanece */
+    #btn-ver-productos.usado {
+      opacity: 0;
+      pointer-events: none; /* ya no se puede pulsar */
+    }
+
+    @keyframes rebotar {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(4px); }
+    }
+
+    /* el contenido aparece subiendo desde abajo al pulsar "Ver productos" */
+    .layout.revelado {
+      animation: subir 0.8s ease both;
+    }
+
+    .hero-rotulo {
+      margin: 0 0 24px;
+      color: var(--suave);
+      animation: subir 0.8s ease both;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(3rem, 10vw, 9rem);
+      font-weight: 500;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      animation: subir 0.9s 0.1s ease both; /* entra un poquito después del rótulo */
+    }
+
+    .hero h1 span {
+      color: var(--suave); /* segunda línea en gris, para dar ritmo */
+    }
+
+    /* animación de entrada: sube desde abajo mientras aparece */
+    @keyframes subir {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ======================== DOS COLUMNAS ======================== */
+    /* grid: panel de 320px a la izquierda, productos con todo el resto */
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: clamp(32px, 4vw, 64px);
+      align-items: start;
+    }
+
+    /* min-width: 0 deja que la tabla ancha se deslice adentro
+       en vez de estirar la columna y romper la página */
+    .principal {
+      min-width: 0;
+    }
+
+    /* .layout tiene display: grid, que le ganaría al atributo hidden:
+       esta regla asegura que hidden de verdad lo oculte */
+    .layout[hidden] {
+      display: none;
+    }
+
+    /* que la barra fija no tape el contenido al bajar hasta él */
+    .layout {
+      scroll-margin-top: 100px;
+    }
+
+    /* título de sección: rótulo pequeño con una línea arriba */
+    .titulo-seccion {
+      display: flex;
+      justify-content: space-between;
+      margin: 0 0 20px;
+      padding-top: 12px;
+      border-top: 1px solid var(--linea);
+    }
+
+    #contador {
+      color: var(--suave);
+    }
+
+    /* ======================== PANEL IZQUIERDO ===================== */
+    .panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .caja {
+      padding-bottom: 24px;
+    }
+
+    .vacio {
+      margin: 0;
+      color: var(--suave);
+      font-size: 0.9rem;
+    }
+
+    /* DESPLEGABLES "¿Quieres agregar / eliminar...?": filas tipo acordeón
+       separadas por líneas, con un "+" que gira y se vuelve "×" */
+    details.caja {
+      padding-bottom: 0;
+      border-top: 1px solid var(--linea);
+    }
+
+    details.caja:last-of-type {
+      border-bottom: 1px solid var(--linea);
+    }
+
+    details.caja summary {
+      list-style: none; /* quita el triángulo del navegador */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 0;
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: padding-left 0.25s, color 0.2s;
+    }
+
+    /* el contenido del desplegable aparece suavemente al abrirlo */
+    details.caja[open] > form {
+      animation: aparecer 0.3s ease;
+    }
+
+    details.caja summary::-webkit-details-marker {
+      display: none; /* el triángulo en Safari */
+    }
+
+    details.caja summary:hover {
+      padding-left: 6px; /* se corre un poquito: pista de que se puede abrir */
+    }
+
+    /* el "+" va dentro de un círculo, que se rellena al pasar el mouse */
+    details.caja summary::after {
+      content: '+';
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--linea);
+      border-radius: 50%;
+      font-size: 1.3rem;
+      font-weight: 300;
+      line-height: 1;
+      transition: transform 0.3s, background 0.2s, color 0.2s;
+    }
+
+    details.caja summary:hover::after {
+      background: var(--texto);
+      color: var(--fondo);
+    }
+
+    details.caja[open] summary::after {
+      transform: rotate(45deg); /* + girado 45° = × */
+    }
+
+    details.caja[open] {
+      padding-bottom: 24px;
+    }
+
+    /* ========================= FORMULARIOS ======================== */
+    #form-producto,
+    #form-eliminar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #form-producto h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+    }
+
+    /* etiqueta arriba, campo abajo */
+    #form-producto label,
+    #form-eliminar label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--suave);
+    }
+
+    #form-producto input:focus,
+    #form-producto textarea:focus,
+    #form-filtro input:focus {
+      outline: 2px solid var(--texto);
+      outline-offset: -1px;
+    }
+
+    #form-producto textarea {
+      resize: vertical;
+    }
+
+    /* el switch va al lado del texto, no debajo */
+    #form-producto label.check {
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      color: var(--texto);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* INTERRUPTOR (switch): sigue siendo un checkbox de verdad (FormData lo
+       lee igual), solo cambia la apariencia. Rectangular, sin curvas. */
+    #form-producto label.check input[type="checkbox"] {
+      appearance: none;
+      position: relative;
+      width: 44px;
+      height: 24px;
+      margin: 0;
+      padding: 0;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 999px;
+      background: var(--switch-apagado);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #form-producto label.check input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--bolita-apagado);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.6, 1); /* pequeño rebote */
+    }
+
+    /* :checked = marcado → la pista cambia de color y el cuadrito se corre */
+    #form-producto label.check input[type="checkbox"]:checked {
+      background: var(--switch-encendido);
+    }
+
+    #form-producto label.check input[type="checkbox"]:checked::before {
+      transform: translateX(20px);
+      background: var(--bolita-encendido);
+    }
+
+    #notificación {
+      padding-top: 16px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    /* ======================== TABLA GRANDE ======================== */
+    /* La tabla es blanca en los dos temas, así que sus colores son fijos */
+    .tabla-wrap {
+      overflow-x: auto; /* en pantallas chicas se desliza, no rompe la página */
+      border-radius: 16px; /* esquinas redondeadas (se notan en modo oscuro) */
+      background: #ffffff;
+    }
+
+    .tabla-productos {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      color: #0a0a0a;
+      font-size: 0.9rem;
+    }
+
+    .tabla-productos th,
+    .tabla-productos td {
+      padding: 14px 12px;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid #e3e3e3;
+    }
+
+    .tabla-productos th {
+      color: #636363;
+      border-bottom: 1px solid #0a0a0a;
+      white-space: nowrap;
+    }
+
+    .tabla-productos tbody tr {
+      transition: background 0.15s;
+    }
+
+    .tabla-productos tbody tr:hover {
+      background: #f4f4f4;
+    }
+
+    /* columnas de números (id y unidades) en monoespaciada */
+    .tabla-productos td:first-child,
+    .tabla-productos td:nth-child(6) {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .tabla-productos td strong {
+      font-weight: 500;
+    }
+
+    .tabla-productos img,
+    .tabla-productos .sin-foto {
+      display: block;
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 10px;
+      transition: transform 0.3s;
+    }
+
+    /* al pasar el mouse por la fila, la foto crece un poquito */
+    .tabla-productos tbody tr:hover img {
+      transform: scale(1.08);
+    }
+
+    /* categorías: pastillas con borde fino */
+    .etiqueta {
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+      padding: 3px 10px;
+      border: 1px solid #c7c7c7;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    /* PRECIO: antes tachado y gris, ahora grande, y etiqueta del descuento */
+    .precio {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 2px 8px;
+      white-space: nowrap;
+    }
+
+    .precio-antes {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: #737373;
+      text-decoration: line-through; /* la raya encima del precio viejo */
+      text-decoration-color: #b91c1c;
+    }
+
+    .precio-ahora {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #0a0a0a;
+    }
+
+    .badge-descuento {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #0a0a0a;
+      color: #ffffff;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 500;
+    }
+
+    /* ESTADO: pastilla de color suave con un puntito que "late" si está disponible */
+    .estado {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 12px 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .estado::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .estado.si {
+      background: #dcfce7;
+      color: #166534;   /* 7:1 sobre su fondo verde claro */
+    }
+
+    .estado.no {
+      background: #fee2e2;
+      color: #991b1b;   /* 7.4:1 sobre su fondo rojo claro */
+    }
+
+    .estado.si::before {
+      animation: latir 1.8s ease-in-out infinite;
+    }
+
+    @keyframes latir {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.45); }
+      50%      { box-shadow: 0 0 0 4px rgba(22, 101, 52, 0); }
+    }
+
+    /* ================== TARJETAS REDUCIDAS (panel) ================ */
+    .mini-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* blancas en los dos temas, igual que la tabla */
+    .mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: #ffffff;
+      color: #0a0a0a;
+      border: 1px solid #e3e3e3;
+      border-radius: 14px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: aparecer 0.3s ease both;
+    }
+
+    /* al pasar el mouse la tarjeta "flota" */
+    .mini-lista .mini:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .mini img,
+    .mini .sin-foto {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .mini-info .precio {
+      margin: 2px 0 4px;
+    }
+
+    .mini-info .estado {
+      font-size: 0.65rem;
+      padding: 2px 8px 2px 7px;
+    }
+
+    .mini-info {
+      flex: 1;
+      min-width: 0; /* para que el nombre largo se corte con "..." */
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: #636363;
+    }
+
+    .mini-info strong {
+      display: block;
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #0a0a0a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* producto sin foto: cuadro con una diagonal, como en un plano */
+    .sin-foto {
+      display: block;
+      background:
+        linear-gradient(to top right, transparent calc(50% - 0.5px), #c7c7c7 50%, transparent calc(50% + 0.5px)),
+        #f4f4f4;
+      border: 1px solid #e3e3e3;
+      border-radius: 10px;
+    }
+
+    /* Quien tiene activado "reducir movimiento" en su sistema no ve
+       animaciones (accesibilidad: a algunas personas les marean) */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    /* ======================= TARJETA (dialog) ===================== */
+    /* las filas de la tabla y las tarjetitas se pueden pulsar */
+    .tabla-productos tbody tr,
+    .mini-lista .mini {
+      cursor: pointer;
+    }
+
+    /* fila enfocada con Tab: contorno negro (la tabla es blanca en ambos temas) */
+    .tabla-productos tbody tr:focus-visible {
+      outline: 2px solid #0a0a0a;
+      outline-offset: -2px;
+    }
+
+    /* quitamos el estilo por defecto del <dialog> */
+    #tarjeta-producto {
+      width: min(780px, calc(100% - 32px));
+      max-height: calc(100% - 32px);
+      padding: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
+    }
+
+    /* ::backdrop = el fondo detrás del dialog: oscuro y desenfocado */
+    #tarjeta-producto::backdrop {
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(4px);
+      animation: fundido 0.25s ease;
+    }
+
+    @keyframes fundido {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* la tarjeta: blanca con letra negra en los dos temas, como la tabla.
+       Dos columnas: foto | información */
+    .tarjeta {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      overflow: hidden;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: #ffffff;
+      color: #0a0a0a;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+      animation: emerger 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+
+    /* entra creciendo un poquito desde abajo */
+    @keyframes emerger {
+      from { opacity: 0; transform: translateY(24px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    #tarjeta-contenido {
+      display: contents; /* sus hijos se acomodan directo en el grid de .tarjeta */
+    }
+
+    .tarjeta-foto {
+      min-height: 320px;
+      background: #f4f4f4;
+    }
+
+    .tarjeta-foto img,
+    .tarjeta-foto .sin-foto {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: none;
+      border-radius: 0;
+    }
+
+    .tarjeta-cuerpo {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 36px 32px 32px;
+    }
+
+    .tarjeta-cuerpo .rotulo {
+      margin: 0;
+      color: #636363;
+    }
+
+    .tarjeta-cuerpo h2 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .tarjeta-desc {
+      margin: 0;
+      color: #4a4a4a;
+    }
+
+    .tarjeta-cuerpo .precio-ahora {
+      font-size: 1.4rem;
+    }
+
+    .tarjeta-cuerpo .precio-antes {
+      font-size: 0.9rem;
+    }
+
+    /* datos en filas separadas por líneas finas */
+    .tarjeta-datos {
+      margin: 0;
+      border-top: 1px solid #e3e3e3;
+    }
+
+    .tarjeta-datos div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid #e3e3e3;
+    }
+
+    .tarjeta-datos dt {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #636363;
+    }
+
+    .tarjeta-datos dd {
+      margin: 0;
+      text-align: right;
+    }
+
+    .tarjeta-cuerpo .btn-editar {
+      align-self: flex-start;
+      margin-top: 4px;
+      padding: 11px 22px;
+      background: #0a0a0a;
+      color: #ffffff;
+    }
+
+    .tarjeta-cuerpo .btn-editar:hover {
+      background: #ffffff;
+      color: #0a0a0a;
+    }
+
+    /* botón × redondo arriba a la derecha; gira al pasar el mouse */
+    .tarjeta-cerrar {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 2;
+      width: 38px;
+      height: 38px;
+      border: 1px solid #0a0a0a;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #0a0a0a;
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.25s, background 0.2s, color 0.2s;
+    }
+
+    .tarjeta-cerrar:hover {
+      transform: rotate(90deg);
+      background: #0a0a0a;
+      color: #ffffff;
+    }
+
+    /* ========================== CELULAR ========================== */
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr; /* una sola columna, panel arriba */
+      }
+
+      .barra-superior {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      #form-filtro {
+        order: 3;          /* la búsqueda baja a su propia fila */
+        flex-basis: 100%;
+        max-width: none;
+      }
+
+      /* la tarjeta: foto arriba, información abajo */
+      .tarjeta {
+        grid-template-columns: 1fr;
+      }
+
+      .tarjeta-foto {
+        min-height: 220px;
+        height: 220px;
+      }
+
+      .tarjeta-cuerpo {
+        padding: 24px 20px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <button id="btn-traer">Traer productos</button>
-  <div id="resultado"></div>
-  <div id="resultado2"></div>
-  <div id="resultado3"></div>
-  <div id="resultado4"></div>
+  <!-- BARRA SUPERIOR: logo, búsqueda y botón de tema -->
+  <header class="barra-superior">
+    <a href="#" class="logo">Inventario</a>
 
-  <!-- Filtro: un solo campo. Si escribes un número busca por id,
-       si escribes texto busca por nombre (ver prueba2.js) -->
-  <form id="form-filtro">
-    <input type="search" id="busqueda" placeholder="Id o nombre del producto">
-    <button type="submit">Filtrar</button>
-  </form>
-  <div id="resultado-filtro"></div>
+    <!-- Filtro: el select decide si se busca por nombre o por id (ver prueba2.js) -->
+    <form id="form-filtro">
+      <!-- el usuario elige por qué columna buscar. El JS (mejorarSelect) lo
+           convierte en una lista con el estilo de la página -->
+      <select id="tipo-busqueda" aria-label="Buscar por">
+        <option value="nombre">Nombre</option>
+        <option value="id">ID</option>
+      </select>
+      <div class="buscador">
+        <!-- autocomplete="off": que el navegador no muestre SU lista encima de la nuestra -->
+        <input type="search" id="busqueda" placeholder="Nombre del producto" autocomplete="off" aria-label="Buscar">
+        <!-- aquí el JS pinta las sugerencias mientras escribes -->
+        <ul id="sugerencias" hidden></ul>
+      </div>
+      <button type="submit">Filtrar</button>
+    </form>
 
-  <!-- Formulario: un input por cada columna de "productos_práctica".
-       El "name" de cada input es igual al nombre de la columna, así en el
-       JS es fácil saber qué valor va en qué campo. -->
-  <form id="form-producto">
-    <h2>Agregar producto</h2>
+    <!-- el texto lo pone el JS según el tema actual -->
+    <button type="button" id="btn-tema">Modo oscuro</button>
+  </header>
 
-    <label>Nombre
-      <!-- required: el navegador no deja enviar el form si está vacío -->
-      <input type="text" name="nombre" required>
-    </label>
+  <!-- HERO: al entrar es lo ÚNICO que se ve, centrado en la pantalla -->
+  <section class="hero">
+    <p class="rotulo hero-rotulo">Inventario de productos — 2026</p>
+    <h1>Un inventario diferente<br><span>para tus productos.</span></h1>
+    <!-- al pulsarlo se muestra el contenido de abajo (ver prueba2.js) -->
+    <!-- el <span> lleva el subrayado animado; el botón, la animación de entrada -->
+    <button type="button" id="btn-ver-productos"><span>Ver productos</span></button>
+  </section>
 
-    <label>Descripción
-      <textarea name="descripcion" rows="2"></textarea>
-    </label>
+  <!-- DOS COLUMNAS: panel angosto a la izquierda, productos a la derecha.
+       hidden: empieza oculto; el botón "Ver productos" lo muestra -->
+  <div class="layout" id="contenido" hidden>
 
-    <label>Precio
-      <input type="number" name="precio" min="0" required>
-    </label>
+    <aside class="panel">
+      <section class="caja">
+        <h2 class="titulo-seccion rotulo">Resultados de búsqueda</h2>
+        <div id="resultado-filtro">
+          <p class="vacio">Usa la barra de arriba para buscar un producto.</p>
+        </div>
+      </section>
 
-    <label>Unidades
-      <input type="number" name="unidades" min="0" value="1" required>
-    </label>
+      <!-- <details> + <summary>: un desplegable que trae el navegador, sin JS.
+           Al hacer clic en el summary se abre/cierra lo que hay adentro. -->
+      <details id="panel-agregar" class="caja">
+        <summary>¿Quieres agregar un producto?</summary>
 
-    <label>Descuento (%)
-      <!-- se escribe 15 y en el JS se convierte a 0.15, como está en la tabla -->
-      <input type="number" name="descuento" min="0" max="100" value="0">
-    </label>
+        <!-- Formulario: un input por cada columna de "productos_práctica".
+             El "name" de cada input es igual al nombre de la columna, así en el
+             JS es fácil saber qué valor va en qué campo. -->
+        <form id="form-producto">
+          <!-- id para cambiar el texto a "Modificar producto" desde el JS -->
+          <h2 id="titulo-form">Agregar producto</h2>
 
-    <label>Categorías (separadas por coma)
-      <input type="text" name="categorias" placeholder="tecnología, audio">
-    </label>
+          <label>Nombre
+            <!-- required: el navegador no deja enviar el form si está vacío -->
+            <input type="text" name="nombre" required>
+          </label>
 
-    <label>URL de la imagen
-      <input type="url" name="img_URL" placeholder="https://...">
-    </label>
+          <label>Descripción
+            <textarea name="descripcion" rows="2"></textarea>
+          </label>
 
-    <label class="check">
-      <input type="checkbox" name="disponible" checked> Disponible
-    </label>
+          <label>Precio
+            <input type="number" name="precio" min="0" required>
+          </label>
 
-    <button type="submit" id="btn-agregar">Agregar producto</button>
-  </form>
+          <label>Unidades
+            <input type="number" name="unidades" min="0" value="1" required>
+          </label>
 
-  <div id="notificación"></div>
+          <label>Descuento (%)
+            <!-- se escribe 15 y en el JS se convierte a 0.15, como está en la tabla -->
+            <input type="number" name="descuento" min="0" max="100" value="0">
+          </label>
+
+          <label>Categorías (separadas por coma)
+            <input type="text" name="categorias" placeholder="tecnología, audio">
+          </label>
+
+          <label>URL de la imagen
+            <input type="url" name="img_URL" placeholder="https://...">
+          </label>
+
+          <label class="check">
+            <input type="checkbox" name="disponible" checked> Disponible
+          </label>
+
+          <button type="submit" id="btn-agregar">Agregar producto</button>
+          <!-- type="button": NO envía el form. hidden: solo se ve al editar -->
+          <button type="button" id="btn-cancelar" hidden>Cancelar</button>
+        </form>
+      </details>
+
+      <!-- mismo desplegable que el de agregar, pero para borrar -->
+      <details id="panel-eliminar" class="caja">
+        <summary>¿Quieres eliminar un producto?</summary>
+
+        <form id="form-eliminar">
+          <label>Producto
+            <!-- las opciones las llena el JS con todos los productos, y
+                 mejorarSelect lo convierte en una lista con fotos.
+                 Sin "required": el select queda oculto y el navegador no
+                 puede mostrar su aviso; lo validamos en el JS -->
+            <select id="select-eliminar" aria-label="Producto a eliminar">
+              <option value="">Elige un producto...</option>
+            </select>
+          </label>
+
+          <!-- vista previa del producto elegido, para no borrar el equivocado -->
+          <div id="vista-eliminar"></div>
+
+          <!-- 1er clic: "¿Seguro?" · 2do clic: borra (ver form-eliminar en prueba2.js) -->
+          <button type="submit" id="btn-eliminar" class="btn-eliminar">Eliminar</button>
+        </form>
+      </details>
+
+      <div id="notificación"></div>
+    </aside>
+
+    <main class="principal" id="productos">
+      <h2 class="titulo-seccion rotulo">Todos los productos <span id="contador"></span></h2>
+      <!-- se llena solo al entrar a la página (cargarProductos en prueba2.js) -->
+      <div id="todos-productos" class="vacio">Cargando productos...</div>
+    </main>
+
+  </div>
+
+  <!-- TARJETA DEL PRODUCTO: <dialog> es una ventana que trae el navegador.
+       showModal() la abre encima de todo y oscurece el fondo; Escape la
+       cierra sola. El contenido lo pone el JS (abrirTarjeta). -->
+  <dialog id="tarjeta-producto" aria-labelledby="tarjeta-nombre">
+    <article class="tarjeta">
+      <button type="button" class="tarjeta-cerrar" aria-label="Cerrar">×</button>
+      <div id="tarjeta-contenido"></div>
+    </article>
+  </dialog>
 
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
