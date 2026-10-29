@@ -96,3 +96,12 @@ Hoy seguimos con el CRUD y vimos el Read: agregamos un filtro con un campo de b�
 `prueba2.html` que busca por id (`.eq().single()`) si escribo un número, o por nombre
 (`.ilike()`) si escribo texto. En el camino salió un problema de scope: las funciones de
 búsqueda estaban dentro del listener del form y no se podían usar desde afuera.
+
+## 2026-10-29
+
+Hoy terminamos los métodos CRUD que faltaban, el Update y el Delete, y los implementamos en
+nuestra tabla de `prueba2.html`: un botón Editar que llena el formulario y guarda con
+`.update()`, y un desplegable para eliminar con `.delete()` y confirmación en dos clics.
+Después le dimos diseño a la página y exploramos sobre eso, dándole nuestro propio estilo
+(tomando como referencia makearchitects.com, con modo claro y oscuro) y aplicándolo junto con
+el CRUD. Por otro lado vimos un poco sobre datos relacionales en las bases de datos.
