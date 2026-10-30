@@ -120,3 +120,15 @@ foto de perfil con borde verde que al hacer clic muestra el correo y el botón d
 y al entrar sale un aviso de "Ya hay una sesión iniciada"; si no, no aparece nada. Por último le
 dimos el mismo estilo de `prueba2.html`: login centrado, link para cambiar a "Regístrate" y un
 ojo animado para ver la contraseña.
+
+Después seguimos con el Read y el Update de los datos del cliente. Al iniciar sesión ahora sale
+una bienvenida grande con el nombre, que se lee de la tabla con `.eq('id', ...)` y
+`.maybeSingle()`. Si no hay sesión, el perfil aparece con borde rojo y un botón para iniciar
+sesión. En el menú del perfil agregamos "Configuración", que abre una ventana (`<dialog>`) con
+opciones generadas desde un arreglo con `map()`. Por ahora solo "Actualizar datos" funciona;
+las demás (soporte, notificaciones, etc.) dicen "Pronto". "Actualizar datos" lleva a un
+formulario con los campos ya llenos (nombre, identificación, teléfono y dirección), y al guardar
+usa `.update()`. El correo y el rol quedan de solo lectura. Aprendí que si el RLS no deja hacer
+el UPDATE, Supabase no da error: simplemente no cambia ninguna fila. También vimos que la tabla
+dejaba leer los datos de todos los clientes sin iniciar sesión, y que eso se arregla con
+políticas de RLS que usan `auth.uid() = id`.
