@@ -105,3 +105,18 @@ nuestra tabla de `prueba2.html`: un botón Editar que llena el formulario y guar
 Después le dimos diseño a la página y exploramos sobre eso, dándole nuestro propio estilo
 (tomando como referencia makearchitects.com, con modo claro y oscuro) y aplicándolo junto con
 el CRUD. Por otro lado vimos un poco sobre datos relacionales en las bases de datos.
+
+## 2026-10-30
+
+Hoy hicimos el login con Supabase en `cliente.html`. El registro se hace en dos pasos: primero
+`db.auth.signUp()` crea el usuario en Auth, y después con `insert` se guardan sus datos (nombre,
+correo, rol) en la tabla de clientes, usando como id el mismo uuid que le dio Auth. Al principio
+registrar daba error: el código buscaba la tabla `clientes_practica`, pero en Supabase se llamaba
+`cliente_práctica` (singular y con tilde). La pista del propio error (`Perhaps you meant...`)
+ayudó a encontrarlo, y también vimos que, como el proyecto pide confirmar el correo, justo después
+de registrarse todavía no hay sesión y el RLS puede bloquear el `insert`. Para el estado de la
+sesión usamos `signInWithPassword()`, `getUser()` y `signOut()`: si hay sesión aparece arriba una
+foto de perfil con borde verde que al hacer clic muestra el correo y el botón de cerrar sesión,
+y al entrar sale un aviso de "Ya hay una sesión iniciada"; si no, no aparece nada. Por último le
+dimos el mismo estilo de `prueba2.html`: login centrado, link para cambiar a "Regístrate" y un
+ojo animado para ver la contraseña.
