@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi cuenta</title>
+
+  <!-- CDN: la librería de Supabase va ANTES que nuestros scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- TIPOGRAFÍA: las mismas de prueba2.html
+       Inter Tight → títulos y texto · IBM Plex Mono → etiquetas y botones -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Igual que en prueba2.html: aplica el tema guardado antes de pintar
+       la página, para que no "parpadee" en blanco al recargar. Usa la misma
+       clave 'tema', así el modo elegido se comparte entre las dos páginas -->
+  <script>
+    const temaGuardado = localStorage.getItem('tema');
+    const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (temaGuardado === 'oscuro' || (temaGuardado === null && prefiereOscuro)) {
+      document.documentElement.dataset.tema = 'oscuro'; // → <html data-tema="oscuro">
+    }
+  </script>
+
+  <style>
+    /* ============================================================
+       VARIABLES: copiadas de prueba2.html para mantener el mismo look.
+       Blanco y negro, líneas finas, mucho espacio, tipografía grande.
+       ============================================================ */
+    :root {
+      --sans: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+      --fondo: #ffffff;
+      --texto: #0a0a0a;
+      --suave: #636363;
+      --linea: #0a0a0a;
+      --linea-suave: #e3e3e3;
+
+      --boton-fondo: #0a0a0a;
+      --boton-texto: #ffffff;
+      --boton-borde: #0a0a0a;
+      --boton-hover-fondo: #ffffff;
+      --boton-hover-texto: #0a0a0a;
+
+      --input-fondo: #ffffff;
+      --input-texto: #0a0a0a;
+      --input-borde: #a3a3a3;
+
+      --verde: #16a34a;          /* sesión iniciada */
+      --rojo: #dc2626;           /* sin sesión */
+    }
+
+    :root[data-tema="oscuro"] {
+      color-scheme: dark;
+      --fondo: #0b0b0b;
+      --texto: #f2f2f2;
+      --suave: #a6a6a6;
+      --linea: #f2f2f2;
+      --linea-suave: #2b2b2b;
+
+      --boton-fondo: #ffffff;
+      --boton-texto: #0a0a0a;
+      --boton-borde: #ffffff;
+      --boton-hover-fondo: #d4d4d4;
+      --boton-hover-texto: #0a0a0a;
+
+      --input-fondo: #ffffff;
+      --input-texto: #0a0a0a;
+      --input-borde: #ffffff;
+    }
+
+    /* ============================ BASE ============================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0 clamp(16px, 4vw, 56px);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      background: var(--fondo);
+      color: var(--texto);
+      transition: background 0.25s, color 0.25s;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--texto);
+      outline-offset: 2px;
+    }
+
+    /* etiqueta pequeña en mayúsculas y monoespaciada */
+    .rotulo,
+    label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ======================= BARRA SUPERIOR ======================= */
+    .barra-superior {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 18px 0;
+      background: var(--fondo);
+      border-bottom: 1px solid var(--linea);
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      text-decoration: none;
+      line-height: 1;
+      transition: letter-spacing 0.3s;
+    }
+
+    .logo:hover {
+      letter-spacing: -0.02em;
+    }
+
+    #btn-tema {
+      margin-left: auto; /* lo empuja a la derecha */
+    }
+
+    /* ícono del tema: círculo mitad lleno, que da media vuelta al pasar el mouse */
+    #btn-tema::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 8px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+      vertical-align: -1px;
+      transition: transform 0.4s;
+    }
+
+    #btn-tema:hover::before {
+      transform: rotate(180deg);
+    }
+
+    /* FOTO DE PERFIL: círculo con la inicial del correo y borde verde,
+       que indica que la sesión está iniciada */
+    #avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--verde);
+      border-radius: 50%;
+      outline: 2px solid var(--fondo);  /* anillo del color del fondo... */
+      outline-offset: -4px;             /* ...entre el borde verde y el centro */
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      padding: 0;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      animation: aparecer 0.35s ease;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+
+    /* SIN SESIÓN: borde rojo, y la silueta en vez de la inicial */
+    #perfil.sin-sesion #avatar {
+      border-color: var(--rojo);
+    }
+
+    #perfil.sin-sesion #avatar-letra,
+    #perfil.con-sesion .avatar-silueta {
+      display: none;
+    }
+
+    /* lo mismo en el menú: solo se ve el bloque que corresponde */
+    #perfil.sin-sesion .menu-con-sesion,
+    #perfil.con-sesion .menu-sin-sesion {
+      display: none;
+    }
+
+    #avatar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #avatar:active {
+      transform: scale(0.96);
+    }
+
+    /* el menú se posiciona respecto a este contenedor */
+    #perfil {
+      position: relative;
+    }
+
+    /* MENÚ DEL PERFIL: cuadro que cuelga debajo de la foto, pegado a la derecha */
+    #menu-perfil {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 260px;
+      padding: 18px;
+      border: 1px solid var(--linea);
+      border-radius: 16px;
+      background: var(--fondo);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      animation: aparecer 0.25s ease;
+    }
+
+    #menu-perfil .rotulo {
+      margin: 0 0 4px;
+      color: var(--suave);
+    }
+
+    /* correos largos se parten en vez de salirse del cuadro */
+    #perfil-correo,
+    .menu-mensaje {
+      margin: 0 0 16px;
+      font-weight: 500;
+      overflow-wrap: anywhere;
+    }
+
+    /* puntito rojo antes de "No hay una sesión iniciada" */
+    .menu-mensaje::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--rojo);
+      vertical-align: 1px;
+    }
+
+    /* botones del menú: "vacíos", con borde, de todo el ancho del menú */
+    #menu-perfil button {
+      width: 100%;
+      padding: 11px 20px;
+      border: 1px solid var(--suave);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    #menu-perfil button:hover {
+      background: var(--texto);
+      color: var(--fondo);
+      border-color: var(--texto);
+    }
+
+    /* espacio entre "Configuración" y "Cerrar sesión" */
+    #btn-config {
+      margin-bottom: 8px;
+    }
+
+    /* "Iniciar sesión" es la acción principal: relleno, como las pastillas */
+    #menu-perfil #btn-menu-login {
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      border-color: var(--boton-borde);
+    }
+
+    #menu-perfil #btn-menu-login:hover {
+      background: var(--boton-hover-fondo);
+      color: var(--boton-hover-texto);
+    }
+
+    #btn-menu-login::after {
+      content: '→';
+      display: inline-block;
+      margin-left: 6px;
+      transition: transform 0.2s;
+    }
+
+    #btn-menu-login:hover::after {
+      transform: translateX(4px);
+    }
+
+    /* AVISO: mensajito flotante debajo de la barra, a la derecha */
+    #aviso {
+      position: fixed;
+      top: 88px;
+      right: clamp(16px, 4vw, 56px);
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      animation: aparecer 0.35s ease;
+    }
+
+    #aviso[hidden] {
+      display: none;
+    }
+
+    /* puntito verde antes del texto */
+    #aviso::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--verde);
+    }
+
+    /* =========================== BOTONES ========================== */
+    /* pastillas negras que se invierten y suben un poquito al pasar el mouse */
+    #btn-tema,
+    #panel-cuenta button {
+      padding: 11px 20px;
+      border: 1px solid var(--boton-borde);
+      border-radius: 999px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    #btn-tema:hover,
+    #panel-cuenta button:hover {
+      background: var(--boton-hover-fondo);
+      color: var(--boton-hover-texto);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #btn-tema:active,
+    #panel-cuenta button:active {
+      transform: scale(0.96);
+      box-shadow: none;
+    }
+
+    /* la flecha → en los botones que envían un formulario */
+    #panel-cuenta button[type="submit"]::after {
+      content: '→';
+      display: inline-block;
+      margin-left: 6px;
+      transition: transform 0.2s;
+    }
+
+    #panel-cuenta button[type="submit"]:hover::after {
+      transform: translateX(4px);
+    }
+
+
+    /* ========================== CENTRADO ========================== */
+    /* ocupa toda la pantalla menos la barra, y centra la tarjeta en
+       las dos direcciones (igual que el hero de prueba2.html) */
+    .centro {
+      min-height: calc(100vh - 72px);
+      min-height: calc(100svh - 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 0;
+    }
+
+    #panel-cuenta {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 400px;
+      animation: subir 0.8s ease both;
+    }
+
+    @keyframes subir {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .vista h1 {
+      margin: 0 0 28px;
+      text-align: center;
+      font-size: clamp(2.4rem, 6vw, 3.4rem);
+      font-weight: 500;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+
+    /* ========================= BIENVENIDA ========================= */
+    /* el panel se ensancha solo en esta vista, para que quepa la frase
+       grande (cliente.js le pone la clase "ancho") */
+    #panel-cuenta.ancho {
+      max-width: 1100px;
+    }
+
+    #vista-bienvenida {
+      text-align: center;
+    }
+
+    #vista-bienvenida .rotulo {
+      margin: 0 0 24px;
+      color: var(--suave);
+    }
+
+    /* frase grande, como el hero de prueba2.html */
+    #vista-bienvenida h1 {
+      font-size: clamp(3rem, 9vw, 8rem);
+      animation: subir 0.9s ease both;
+    }
+
+    /* el nombre en gris, como la segunda línea del hero */
+    #vista-bienvenida h1 span {
+      color: var(--suave);
+      overflow-wrap: anywhere;
+    }
+
+    .bienvenida-pista {
+      margin: 0;
+      color: var(--suave);
+      animation: subir 0.9s 0.2s ease both; /* entra después del título */
+    }
+
+    /* cada vez que se cambia de vista, entra suavemente */
+    .vista {
+      animation: aparecer 0.35s ease;
+    }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* vacío no ocupa espacio; solo aparece con mensajes de error o de registro */
+    #estado-sesion:empty {
+      display: none;
+    }
+
+    #estado-sesion {
+      margin: 0 0 16px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--suave);
+    }
+
+    /* ========================= FORMULARIOS ======================== */
+    #form-registro,
+    #form-login,
+    #form-perfil {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* etiqueta arriba, campo abajo */
+    #panel-cuenta label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--suave);
+    }
+
+    #panel-cuenta input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--input-borde);
+      border-radius: 12px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font: inherit;
+      text-transform: none;
+      letter-spacing: normal;
+      transition: border-color 0.2s;
+    }
+
+    #panel-cuenta input:hover {
+      border-color: #0a0a0a;
+    }
+
+    /* campos de solo lectura: grises, para que se note que no se editan.
+       El campo es claro en los dos temas, así que los colores son fijos */
+    #panel-cuenta input[readonly] {
+      background: #f0f0f0;
+      color: #636363;
+      border-color: #d4d4d4;
+      cursor: not-allowed;
+    }
+
+    #panel-cuenta input:focus {
+      outline: 2px solid var(--texto);
+      outline-offset: -1px;
+    }
+
+    /* ===================== VER / OCULTAR CLAVE ==================== */
+    /* contenedor del campo: el ojo se posiciona encima, a la derecha */
+    .campo-clave {
+      position: relative;
+      display: block;
+    }
+
+    /* espacio a la derecha para que el texto no quede debajo del ojo */
+    #panel-cuenta .campo-clave input {
+      padding-right: 46px;
+    }
+
+    /* "button.ver-clave" le gana a la regla general "#panel-cuenta button"
+       (la de las pastillas negras), así este botón queda sin caja */
+    #panel-cuenta button.ver-clave {
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #636363;  /* el campo es blanco en los dos temas: color fijo */
+      box-shadow: none;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    #panel-cuenta button.ver-clave:hover {
+      background: #f0f0f0;
+      color: #0a0a0a;
+      transform: translateY(-50%); /* sin el "salto" de los otros botones */
+      box-shadow: none;
+    }
+
+    #panel-cuenta button.ver-clave:active {
+      transform: translateY(-50%) scale(0.9);
+    }
+
+    /* la raya que tacha el ojo: stroke-dasharray/offset la "esconden"
+       (la raya mide ~23px, así que un desfase de 23 la deja invisible) */
+    .ver-clave .tachado {
+      stroke-dasharray: 23;
+      stroke-dashoffset: 23;
+      transition: stroke-dashoffset 0.3s ease;
+    }
+
+    /* contraseña visible → la raya se dibuja de punta a punta */
+    .ver-clave[aria-pressed="true"] .tachado {
+      stroke-dashoffset: 0;
+    }
+
+    /* el ojo "parpadea" cada vez que se hace clic */
+    .ver-clave .ojo {
+      transform-box: fill-box;     /* que escale desde el centro del ojo */
+      transform-origin: center;
+    }
+
+    .ver-clave.parpadeo .ojo {
+      animation: parpadear 0.3s ease;
+    }
+
+    @keyframes parpadear {
+      0%, 100% { transform: scaleY(1); }
+      50%      { transform: scaleY(0.1); } /* el ojo casi cerrado */
+    }
+
+    /* un poco de aire entre el último campo y el botón */
+    #panel-cuenta form button {
+      margin-top: 8px;
+    }
+
+    /* "¿No tienes cuenta? Regístrate" */
+    .cambiar-vista {
+      margin: 24px 0 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--linea-suave);
+      text-align: center;
+      color: var(--suave);
+    }
+
+    /* el link lleva el mismo subrayado animado que "Ver productos" en
+       prueba2: se vacía hacia la derecha y se vuelve a llenar */
+    .cambiar-vista a {
+      padding-bottom: 2px;
+      color: var(--texto);
+      font-weight: 500;
+      text-decoration: none;
+      background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
+    }
+
+    .cambiar-vista a:hover {
+      animation: subrayar 0.6s ease forwards;
+    }
+
+    @keyframes subrayar {
+      0%   { background-size: 100% 1px; background-position: right bottom; }
+      50%  { background-size: 0% 1px;   background-position: right bottom; }
+      51%  { background-size: 0% 1px;   background-position: left bottom; }
+      100% { background-size: 100% 1px; background-position: left bottom; }
+    }
+
+    /* ==================== VENTANA CONFIGURACIÓN =================== */
+    #ventana-config {
+      width: min(440px, calc(100% - 32px));
+      padding: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
+    }
+
+    /* ::backdrop = el fondo detrás del dialog: oscuro y desenfocado */
+    #ventana-config::backdrop {
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(4px);
+      animation: fundido 0.25s ease;
+    }
+
+    @keyframes fundido {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .ventana {
+      position: relative;
+      padding: 28px;
+      border: 1px solid var(--linea);
+      border-radius: 24px;
+      background: var(--fondo);
+      color: var(--texto);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+      animation: emerger 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+
+    /* entra creciendo un poquito desde abajo */
+    @keyframes emerger {
+      from { opacity: 0; transform: translateY(24px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .ventana .rotulo {
+      margin: 0 0 4px;
+      color: var(--suave);
+    }
+
+    .ventana h2 {
+      margin: 0 0 20px;
+      font-size: 1.8rem;
+      font-weight: 500;
+      letter-spacing: -0.04em;
+    }
+
+    /* la × gira al pasar el mouse, como en la tarjeta de prueba2 */
+    .ventana-cerrar {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--linea);
+      border-radius: 50%;
+      background: var(--fondo);
+      color: var(--texto);
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.25s, background 0.2s, color 0.2s;
+    }
+
+    .ventana-cerrar:hover {
+      transform: rotate(90deg);
+      background: var(--texto);
+      color: var(--fondo);
+    }
+
+    /* OPCIONES: filas separadas por líneas, como los desplegables de prueba2 */
+    .opciones {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-bottom: 1px solid var(--linea);
+    }
+
+    .opcion {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+      padding: 16px 40px 16px 0;
+      border: none;
+      border-top: 1px solid var(--linea);
+      background: none;
+      color: var(--texto);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: padding-left 0.25s;
+    }
+
+    /* se corre un poquito al pasar el mouse: pista de que se puede pulsar */
+    .opcion:hover {
+      padding-left: 6px;
+    }
+
+    /* la flecha → a la derecha, que avanza al pasar el mouse */
+    .opcion::after {
+      content: '→';
+      position: absolute;
+      top: 50%;
+      right: 4px;
+      transform: translateY(-50%);
+      transition: transform 0.2s;
+    }
+
+    .opcion:hover::after {
+      transform: translate(4px, -50%);
+    }
+
+    .opcion-titulo {
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .opcion-desc {
+      color: var(--suave);
+      font-size: 0.85rem;
+    }
+
+    /* etiqueta "Pronto" junto al título de las opciones que aún no funcionan */
+    .opcion-pronto {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border: 1px solid var(--suave);
+      border-radius: 999px;
+      color: var(--suave);
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      vertical-align: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR: igual que en prueba2.html -->
+  <header class="barra-superior">
+    <a href="prueba2.html" class="logo">Inventario</a>
+    <!-- el texto lo pone cliente.js según el tema actual -->
+    <button type="button" id="btn-tema">Modo oscuro</button>
+    <!-- PERFIL: siempre visible. cliente.js le pone la clase "con-sesion"
+         (borde verde) o "sin-sesion" (borde rojo), y el CSS decide qué se
+         ve dentro de la foto y del menú. hidden: oculto hasta que cliente.js
+         revise la sesión, para que no parpadee en rojo al cargar -->
+    <div id="perfil" hidden>
+      <!-- aria-expanded: le dice al lector de pantalla si el menú está abierto -->
+      <button type="button" id="avatar" aria-expanded="false" aria-controls="menu-perfil">
+        <!-- con sesión: la inicial del correo -->
+        <span id="avatar-letra"></span>
+        <!-- sin sesión: silueta de persona -->
+        <svg class="avatar-silueta" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </button>
+
+      <div id="menu-perfil" hidden>
+        <!-- se ve solo con sesión -->
+        <div class="menu-con-sesion">
+          <p class="rotulo">Sesión iniciada como</p>
+          <p id="perfil-correo"></p>
+          <!-- abre la ventana de configuración (ver #ventana-config) -->
+          <button id="btn-config" type="button">Configuración</button>
+          <button id="btn-logout" type="button">Cerrar sesión</button>
+        </div>
+
+        <!-- se ve solo sin sesión -->
+        <div class="menu-sin-sesion">
+          <p class="rotulo">Mi cuenta</p>
+          <p class="menu-mensaje">No hay una sesión iniciada</p>
+          <button id="btn-menu-login" type="button">Iniciar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- mensajito flotante: cliente.js le pone el texto y lo muestra 3 segundos -->
+  <div id="aviso" role="status" hidden></div>
+
+  <!-- Todo va centrado en la pantalla. Los id de los formularios son los
+       mismos de antes: cliente.js los busca por id -->
+  <main class="centro">
+    <section id="panel-cuenta">
+      <!-- fuera de las dos vistas: así sus mensajes se ven en cualquiera -->
+      <p id="estado-sesion"></p>
+
+      <!-- VISTA 1: iniciar sesión (la que se ve al entrar) -->
+      <div class="vista" id="vista-login">
+        <h1>Inicia sesión</h1>
+
+        <form id="form-login">
+          <!-- el input va DENTRO del label: etiqueta arriba, campo abajo -->
+          <label>Correo
+            <input id="login-correo" type="email" autocomplete="email" required>
+          </label>
+
+          <label>Contraseña
+            <!-- el ojo va encima del campo, a la derecha (ver .campo-clave) -->
+            <span class="campo-clave">
+              <input id="login-password" type="password" autocomplete="current-password" required>
+              <button type="button" class="ver-clave" aria-label="Mostrar contraseña" aria-pressed="false">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <g class="ojo">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </g>
+                  <path class="tachado" d="M4 4l16 16"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+
+          <button type="submit">Iniciar sesión</button>
+        </form>
+
+        <!-- href="#registro": el JS lo intercepta y cambia de vista -->
+        <p class="cambiar-vista">¿No tienes cuenta? <a href="#registro" id="ir-registro">Regístrate</a></p>
+      </div>
+
+      <!-- VISTA 2: registro. hidden: empieza oculta -->
+      <div class="vista" id="vista-registro" hidden>
+        <h1>Crea tu cuenta</h1>
+
+        <form id="form-registro">
+          <label>Nombre
+            <input id="registro-nombre" type="text" autocomplete="name" required>
+          </label>
+
+          <label>Correo
+            <input id="registro-correo" type="email" autocomplete="email" required>
+          </label>
+
+          <label>Contraseña
+            <span class="campo-clave">
+              <input id="registro-password" type="password" minlength="6" autocomplete="new-password" required>
+              <button type="button" class="ver-clave" aria-label="Mostrar contraseña" aria-pressed="false">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <g class="ojo">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </g>
+                  <path class="tachado" d="M4 4l16 16"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+
+          <button type="submit">Crear cuenta</button>
+        </form>
+
+        <p class="cambiar-vista">¿Ya tienes cuenta? <a href="#login" id="ir-login">Inicia sesión</a></p>
+      </div>
+
+      <!-- VISTA 3: bienvenida. Es lo que se ve al tener la sesión iniciada;
+           cliente.js pone el nombre que lee de cliente_práctica -->
+      <div class="vista" id="vista-bienvenida" hidden>
+        <p class="rotulo">Sesión iniciada</p>
+        <h1>Bienvenido,<br><span id="bienvenida-nombre"></span></h1>
+        <p class="bienvenida-pista">Abre tu perfil, arriba a la derecha, para ver la configuración de tu cuenta.</p>
+      </div>
+
+      <!-- VISTA 4: datos del cliente. Se llega desde Configuración →
+           Actualizar datos; cliente.js lee la fila de cliente_práctica y
+           llena estos campos. El "name" de cada input es igual al nombre
+           de la columna, igual que en form-producto de prueba2.html -->
+      <div class="vista" id="vista-perfil" hidden>
+        <h1>Mis datos</h1>
+
+        <form id="form-perfil">
+          <label>Nombre
+            <input name="nombre" type="text" autocomplete="name" required>
+          </label>
+
+          <label>Número de identificación
+            <input name="numero_identificacion" type="text" inputmode="numeric">
+          </label>
+
+          <label>Teléfono
+            <input name="telefono" type="tel" autocomplete="tel">
+          </label>
+
+          <label>Dirección
+            <input name="direccion" type="text" autocomplete="street-address">
+          </label>
+
+          <!-- readonly: se ven pero no se pueden editar. El correo lo maneja
+               Auth (cambiarlo solo aquí lo desincroniza del login) y el rol
+               no debería poder cambiárselo el propio cliente -->
+          <label>Correo
+            <input name="correo" type="email" readonly>
+          </label>
+
+          <label>Rol
+            <input name="rol" type="text" readonly>
+          </label>
+
+          <button type="submit">Guardar cambios</button>
+        </form>
+
+        <p class="cambiar-vista"><a href="#inicio" id="volver-inicio">← Volver al inicio</a></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- VENTANA DE CONFIGURACIÓN: un <dialog>, igual que la tarjeta de
+       producto de prueba2.html. showModal() la abre encima de todo con el
+       fondo oscurecido, y Escape la cierra sola -->
+  <dialog id="ventana-config" aria-labelledby="config-titulo">
+    <article class="ventana">
+      <button type="button" class="ventana-cerrar" aria-label="Cerrar">×</button>
+      <p class="rotulo">Mi cuenta</p>
+      <h2 id="config-titulo">Configuración</h2>
+
+      <!-- vacía a propósito: cliente.js la llena a partir del arreglo
+           opcionesConfig (ver pintarOpcionesConfig) -->
+      <ul class="opciones" id="lista-opciones"></ul>
+    </article>
+  </dialog>
+
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/cliente.js"></script>
+</body>
+</html>
