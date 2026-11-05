@@ -132,3 +132,12 @@ usa `.update()`. El correo y el rol quedan de solo lectura. Aprendí que si el R
 el UPDATE, Supabase no da error: simplemente no cambia ninguna fila. También vimos que la tabla
 dejaba leer los datos de todos los clientes sin iniciar sesión, y que eso se arregla con
 políticas de RLS que usan `auth.uid() = id`.
+
+## 2026-11-05
+Hoy creé una policy de RLS para la tabla de productos y la probé contra la base de datos en dos
+escenarios: con usuarios autenticados y con usuarios sin autenticar, para comparar qué dejaba
+hacer cada caso. Después exploramos las vulnerabilidades de la tabla de clientes, que todavía no
+tiene RLS activado: comprobamos que, usando solo la anon key, cualquiera puede leer y hasta
+escribir datos sin iniciar sesión, tanto desde la consola del navegador como desde la terminal
+con `curl`. Me quedó claro que la anon key es pública por diseño, y que lo que de verdad protege
+los datos no es esconderla sino el RLS; sin él, esa key funciona como una llave maestra.
