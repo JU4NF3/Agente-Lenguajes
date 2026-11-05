@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Análisis CRUD del juego "Letrario" (juego de adivinar la palabra del día).
+  Relaciona el juego con lo visto en clase en el repositorio Agente-Lenguajes:
+    - INPUT/Supabase-1/js/prueba2.js   (CRUD de productos_práctica)
+    - INPUT/Supabase-1/js/cliente.js   (login + Read/Update de cliente_práctica)
+    - WORK-MEMORY/bitacora_reflexiones.md (entradas 2026-10-23, 2026-10-29 y 2026-10-30)
+  Abre este archivo en el navegador o en VS Code para verlo con colores y pliegues.
+-->
+<analisis_crud proyecto="Letrario" fecha="2026-11-02">
+
+  <!-- ============================================================ -->
+  <resumen>
+    Un juego de "palabra del día" parece solo un juego, pero por dentro es una
+    aplicación CRUD: cada partida es un REGISTRO que se crea, se lee, se modifica
+    y se puede borrar. En Letrario cada partida es una fila de la tabla "games".
+    Esa tabla vive en el navegador (localStorage), pero el archivo js/storage.js
+    la maneja con la MISMA forma que usamos con Supabase en clase:
+    db.from('tabla').insert / select / update / delete, devolviendo { data, error }.
+  </resumen>
+
+  <!-- ============================================================ -->
+  <archivos>
+    <archivo ruta="index.html">Estructura: tablero, teclado y las ventanas (dialog) de ayuda, estadísticas, historial y ajustes.</archivo>
+    <archivo ruta="css/style.css">Diseño, animaciones (voltear, sacudir, rebotar) y tema claro/oscuro con variables CSS.</archivo>
+    <archivo ruta="js/words.js">Listas de palabras: SOLUTIONS (posibles respuestas) y VALID_WORDS (intentos aceptados).</archivo>
+    <archivo ruta="js/storage.js" importancia="alta">La "base de datos": imita al cliente de Supabase. Aquí están los 4 métodos CRUD.</archivo>
+    <archivo ruta="js/game.js">Lógica pura: palabra del día, revisar un intento (verde/amarillo/gris) y calcular estadísticas.</archivo>
+    <archivo ruta="js/app.js" importancia="alta">Interfaz: usa los métodos CRUD en cada momento del juego (startGame, loadGame, saveGuess, deleteGame, resetAll).</archivo>
+  </archivos>
+
+  <!-- ============================================================ -->
+  <relacion_con_la_clase>
+    <sesion fecha="2026-10-23" tema="Read con filtro">
+      En prueba2.js buscábamos un producto con .eq('id', id) o por nombre con .ilike().
+      En el juego, loadGame() busca "la partida diaria de HOY" con un filtro de dos columnas:
+      games.select({ mode: 'daily', date: todayKey() }). Es el mismo Read con filtro,
+      solo que el filtro es un objeto en vez de encadenar .eq().eq().
+    </sesion>
+    <sesion fecha="2026-10-29" tema="Update y Delete">
+      En prueba2.js: modificarProducto() con .update(cambios).eq('id', id) y
+      eliminarProducto() con .delete().eq('id', id), con confirmación en dos clics.
+      En el juego: saveGuess() hace update de la fila después de cada intento, y el
+      historial tiene un botón Borrar que también pide "¿Seguro?" antes de borrar
+      (mismo patrón de dos clics). Además el tema claro/oscuro se guarda en
+      localStorage igual que en prueba2.js.
+    </sesion>
+    <sesion fecha="2026-10-30" tema="Login, Read y Update del cliente">
+      En cliente.js: leerCliente() lee UNA fila con .eq('id', ...).maybeSingle(), y
+      actualizarCliente() avisa que "si el RLS no deja hacer el UPDATE, Supabase no da
+      error: simplemente no cambia ninguna fila". En storage.js el update() se comporta
+      igual: si no encuentra la fila devuelve un arreglo vacío sin error, y por eso
+      saveGuess() revisa data.length === 0, igual que actualizarCliente().
+      También se repiten: las ventanas con dialog.showModal(), cerrar al hacer clic en
+      el fondo (event.target === dialog), el aviso flotante con setTimeout (mostrarAviso
+      → showToast) y las listas generadas con map().join('').
+    </sesion>
+  </relacion_con_la_clase>
+
+  <!-- ============================================================ -->
+  <modelo_de_datos>
+    <tabla nombre="games" donde="localStorage, llave 'letrario:games'"
+           equivalente_en_clase="productos_práctica / cliente_práctica">
+      <columna nombre="id" tipo="texto (uuid)">Se genera solo al insertar, como el id de Supabase.</columna>
+      <columna nombre="mode" tipo="texto">'daily' (palabra del día) o 'practice' (práctica).</columna>
+      <columna nombre="date" tipo="texto AAAA-MM-DD">Día de la partida. Con mode forma el filtro de la diaria.</columna>
+      <columna nombre="solution" tipo="texto">La palabra a adivinar.</columna>
+      <columna nombre="guesses" tipo="arreglo de textos">Los intentos hechos. Es lo que más cambia (Update).</columna>
+      <columna nombre="status" tipo="texto">'playing', 'won' o 'lost'.</columna>
+      <columna nombre="createdAt" tipo="fecha ISO">Se pone al crear (como created_at en Supabase).</columna>
+      <columna nombre="updatedAt" tipo="fecha ISO">Se renueva en cada Update.</columna>
+    </tabla>
+    <ejemplo_de_fila><![CDATA[
+{
+  "id": "3f1c9a2e-...",
+  "mode": "daily",
+  "date": "2026-11-02",
+  "solution": "ASTRO",
+  "guesses": ["ARBOL", "ASTRO"],
+  "status": "won",
+  "createdAt": "2026-11-02T13:20:05.112Z",
+  "updatedAt": "2026-11-02T13:21:40.876Z"
+}
+    ]]></ejemplo_de_fila>
+    <nota>
+      Las estadísticas (jugadas, % de victorias, rachas, distribución) NO se guardan en
+      otra tabla: se calculan LEYENDO las filas de "games" (computeStats en game.js).
+      Así nunca quedan desactualizadas: si borras una partida, las estadísticas cambian solas.
+    </nota>
+  </modelo_de_datos>
+
+  <!-- ============================================================ -->
+  <operaciones>
+
+    <operacion tipo="CREATE" metodo="insert">
+      <cuando>Al abrir el juego por primera vez en el día, o al empezar una palabra de práctica.</cuando>
+      <funcion archivo="js/app.js">startGame(mode)</funcion>
+      <que_ve_el_jugador>Un tablero vacío listo para jugar.</que_ve_el_jugador>
+      <codigo_juego><![CDATA[
+const { data, error } = games.insert([{
+  mode,
+  date: todayKey(),
+  solution: mode === 'daily' ? dailyWord() : randomWord(),
+  guesses: [],
+  status: 'playing',
+}]);
+      ]]></codigo_juego>
+      <codigo_clase archivo="INPUT/Supabase-1/js/prueba2.js" funcion="agregarProducto"><![CDATA[
+const { data, error } = await db
+  .from('productos_práctica')
+  .insert([datos])   // insert() siempre recibe un ARRAY de objetos
+  .select();
+      ]]></codigo_clase>
+      <parecido>Los dos reciben un arreglo de objetos y devuelven las filas creadas en data[0].</parecido>
+    </operacion>
+
+    <operacion tipo="READ" metodo="select">
+      <cuando>(1) Al cargar la página: ¿ya hay partida de hoy? (2) Al abrir Estadísticas. (3) Al abrir el Historial.</cuando>
+      <funcion archivo="js/app.js">loadGame(mode), openStats(), renderHistory()</funcion>
+      <que_ve_el_jugador>
+        Si recargas la página a mitad de partida, tus intentos siguen ahí. Eso es un Read:
+        el juego no "recuerda" nada, lo vuelve a leer de la tabla.
+      </que_ve_el_jugador>
+      <codigo_juego><![CDATA[
+// Read con filtro (como .eq().eq())
+const { data } = games.select({ mode: 'daily', date: todayKey() });
+const existing = data && data.length ? data[data.length - 1] : null;
+state.game = existing ?? startGame(mode);   // si no existe → CREATE
+      ]]></codigo_juego>
+      <codigo_clase archivo="INPUT/Supabase-1/js/cliente.js" funcion="leerCliente"><![CDATA[
+const { data, error } = await db
+  .from('cliente_práctica')
+  .select('*')
+  .eq('id', id)
+  .maybeSingle();   // null si no hay fila, en vez de error
+      ]]></codigo_clase>
+      <parecido>
+        loadGame() hace lo mismo que maybeSingle(): si no hay fila no es un error, simplemente
+        se crea una nueva. El filtro del historial (Todas / Diarias / Práctica) es el mismo
+        tipo de búsqueda que el filtro de productos del 2026-10-23.
+      </parecido>
+    </operacion>
+
+    <operacion tipo="UPDATE" metodo="update">
+      <cuando>Cada vez que el jugador envía una palabra válida (botón ENVIAR o tecla Enter).</cuando>
+      <funcion archivo="js/app.js">saveGuess(guess)</funcion>
+      <que_ve_el_jugador>Las casillas se voltean y toman color; la fila queda guardada.</que_ve_el_jugador>
+      <codigo_juego><![CDATA[
+const guesses = [...state.game.guesses, guess];   // arreglo nuevo con el intento
+let status = 'playing';
+if (guess === state.game.solution) status = 'won';
+else if (guesses.length === MAX_TRIES) status = 'lost';
+
+const { data, error } = games.update(state.game.id, { guesses, status });
+
+if (error || data.length === 0) {   // 0 filas = no se actualizó nada
+  showToast('No se pudo guardar el intento');
+  return null;
+}
+      ]]></codigo_juego>
+      <codigo_clase archivo="INPUT/Supabase-1/js/cliente.js" funcion="actualizarCliente"><![CDATA[
+const { data, error } = await db
+  .from('cliente_práctica')
+  .update(cambios)
+  .eq('id', id)
+  .select();
+
+if (data.length === 0) {   // el RLS no dejó: no hay error, pero 0 filas
+  console.log('No se actualizó ninguna fila...');
+  return null;
+}
+      ]]></codigo_clase>
+      <parecido>
+        Solo se mandan las columnas que cambian (guesses y status), nunca toda la fila, y
+        solo en la fila con ese id. Es la regla del 2026-10-29: .update(cambios).eq('id', id).
+        Una partida de 6 intentos hace hasta 6 Updates sobre la MISMA fila.
+      </parecido>
+    </operacion>
+
+    <operacion tipo="DELETE" metodo="delete">
+      <cuando>(1) Botón "Borrar" de una partida en el Historial. (2) Ajustes → "Borrar todo".</cuando>
+      <funcion archivo="js/app.js">deleteGame(id), resetAll()</funcion>
+      <que_ve_el_jugador>
+        La partida desaparece del historial y las estadísticas se recalculan. Si borras la
+        partida que estás jugando, se crea una nueva (DELETE seguido de CREATE).
+      </que_ve_el_jugador>
+      <codigo_juego><![CDATA[
+// primer clic: pide confirmación; segundo clic: borra
+if (!btn.classList.contains('confirm')) {
+  btn.classList.add('confirm');
+  btn.textContent = '¿Seguro?';
+  return;
+}
+const { data, error } = games.delete(btn.dataset.delete);
+      ]]></codigo_juego>
+      <codigo_clase archivo="INPUT/Supabase-1/js/prueba2.js" funcion="eliminarProducto"><![CDATA[
+const { data, error } = await db
+  .from('productos_práctica')
+  .delete()
+  .eq('id', id)
+  .select();   // devuelve las filas que SÍ se borraron
+      ]]></codigo_clase>
+      <parecido>Misma confirmación en dos clics y mismo resultado: data trae las filas borradas.</parecido>
+    </operacion>
+  </operaciones>
+
+  <!-- ============================================================ -->
+  <flujo_de_una_partida>
+    <paso n="1" crud="READ">Abres la página → loadGame('daily') busca la fila de hoy.</paso>
+    <paso n="2" crud="CREATE">No existe → startGame() inserta una fila con guesses: [] y status 'playing'.</paso>
+    <paso n="3" crud="—">Escribes letras: solo cambian en memoria (state.current), todavía no se guardan.</paso>
+    <paso n="4" crud="UPDATE">Pulsas ENVIAR → saveGuess() agrega el intento a guesses.</paso>
+    <paso n="5" crud="READ">Recargas la página → loadGame() vuelve a leer la fila y pinta tus intentos.</paso>
+    <paso n="6" crud="UPDATE">Aciertas → el mismo update cambia status a 'won'.</paso>
+    <paso n="7" crud="READ">Se abren las Estadísticas → select({ mode: 'daily' }) y computeStats().</paso>
+    <paso n="8" crud="DELETE">En el Historial borras la partida → la fila desaparece y las estadísticas bajan.</paso>
+  </flujo_de_una_partida>
+
+  <!-- ============================================================ -->
+  <donde_verlo_en_vivo>
+    <forma>Abre el juego, presiona F12 → pestaña Application (Aplicación) → Local Storage → la llave "letrario:games". Ahí está la tabla como texto JSON: mírala cambiar con cada intento.</forma>
+    <forma>En la consola escribe: db.from('games').select().data   → es tu propio "SELECT * FROM games".</forma>
+    <forma>Abre el Historial (ícono de líneas, arriba a la izquierda): es la vista de Read + Delete.</forma>
+  </donde_verlo_en_vivo>
+
+  <!-- ============================================================ -->
+  <diferencias_con_supabase>
+    <diferencia aspecto="Dónde se guardan los datos">
+      <localStorage>En el navegador de cada persona. Si cambias de navegador o borras los datos del sitio, se pierde.</localStorage>
+      <supabase>En un servidor (PostgreSQL). Se ve desde cualquier dispositivo.</supabase>
+    </diferencia>
+    <diferencia aspecto="async / await">
+      <localStorage>Es instantáneo, por eso storage.js no usa await.</localStorage>
+      <supabase>Viaja por internet, por eso en clase todo lleva await.</supabase>
+    </diferencia>
+    <diferencia aspecto="Formato">
+      <localStorage>Solo guarda texto: hay que usar JSON.stringify al guardar y JSON.parse al leer.</localStorage>
+      <supabase>Guarda columnas con tipos (int, text, uuid, jsonb...).</supabase>
+    </diferencia>
+    <diferencia aspecto="Seguridad">
+      <localStorage>No hay RLS: cualquiera puede abrir la consola y ver la solución. Por eso el historial esconde la palabra ('?????') mientras la partida está en juego, pero es solo visual.</localStorage>
+      <supabase>Con RLS y auth.uid() cada usuario solo ve sus filas (lo vimos el 2026-10-30).</supabase>
+    </diferencia>
+    <diferencia aspecto="Usuarios">
+      <localStorage>Una sola persona por navegador, sin login.</localStorage>
+      <supabase>Muchos usuarios: cada fila tendría un user_id del login (db.auth.getUser()).</supabase>
+    </diferencia>
+  </diferencias_con_supabase>
+
+  <!-- ============================================================ -->
+  <como_pasarlo_a_supabase>
+    <paso n="1" titulo="Crear la tabla en Supabase (SQL Editor)"><![CDATA[
+create table partidas (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users(id) default auth.uid(),
+  mode       text not null,
+  date       date not null,
+  solution   text not null,
+  guesses    text[] not null default '{}',
+  status     text not null default 'playing',
+  created_at timestamptz default now()
+);
+alter table partidas enable row level security;
+create policy "cada quien sus partidas" on partidas
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+    ]]></paso>
+    <paso n="2" titulo="Cambiar cada método de storage.js por su versión de Supabase"><![CDATA[
+// CREATE
+await db.from('partidas').insert([{ mode, date, solution, guesses: [], status: 'playing' }]).select();
+// READ
+await db.from('partidas').select('*').eq('mode', 'daily').eq('date', today).maybeSingle();
+// UPDATE
+await db.from('partidas').update({ guesses, status }).eq('id', id).select();
+// DELETE
+await db.from('partidas').delete().eq('id', id).select();
+    ]]></paso>
+    <paso n="3" titulo="Agregar async/await">
+      startGame, loadGame, saveGuess y deleteGame pasarían a ser funciones async, como
+      agregarProducto() y leerCliente() en clase.
+    </paso>
+    <paso n="4" titulo="Bonus: ranking entre usuarios">
+      Con datos relacionales (2026-10-29): unir partidas con cliente_práctica por user_id
+      para mostrar un ranking de quién gana en menos intentos.
+    </paso>
+  </como_pasarlo_a_supabase>
+
+  <!-- ============================================================ -->
+  <preguntas_para_analizar>
+    <pregunta n="1">¿Por qué escribir letras NO es un Update, pero pulsar ENVIAR sí? ¿Qué pasaría si guardaras cada letra?</pregunta>
+    <pregunta n="2">Las estadísticas se calculan leyendo partidas en vez de guardarse aparte. ¿Qué ventaja tiene? ¿Y qué desventaja si hubiera 10.000 partidas?</pregunta>
+    <pregunta n="3">En la diaria, ¿qué columnas usarías como "llave" para que nadie tenga dos partidas el mismo día? (pista: mode + date, y con login también user_id).</pregunta>
+    <pregunta n="4">Si borras la partida de hoy desde el Historial puedes volver a jugarla. ¿Cómo lo evitarías con RLS en Supabase?</pregunta>
+    <pregunta n="5">Busca en app.js cada llamada a games.insert / select / update / delete y anota en qué momento del juego ocurre.</pregunta>
+  </preguntas_para_analizar>
+
+</analisis_crud>

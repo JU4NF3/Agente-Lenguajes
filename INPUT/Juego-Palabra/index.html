@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letrario · la palabra de hoy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=8">
+  <!-- el tema guardado se aplica antes de pintar, para que no "parpadee" -->
+  <script>
+    try {
+      if (localStorage.getItem('letrario:theme') === 'dark') {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    } catch {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-side">
+      <button class="icon-btn" id="btn-help" aria-label="Cómo jugar" title="Cómo jugar">?</button>
+      <button class="icon-btn" id="btn-history" aria-label="Historial de partidas" title="Historial">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </button>
+    </div>
+    <div class="brand">
+      <h1>Letrario</h1>
+      <p id="mode-label">Palabra del día</p>
+    </div>
+    <div class="topbar-side">
+      <button class="icon-btn" id="btn-stats" aria-label="Estadísticas" title="Estadísticas">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-settings" aria-label="Ajustes" title="Ajustes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="controls">
+      <div class="mode-switch" role="tablist" aria-label="Modo de juego">
+        <button role="tab" class="mode-btn" data-mode="daily" aria-selected="true">Diaria</button>
+        <button role="tab" class="mode-btn" data-mode="practice" aria-selected="false">Práctica</button>
+      </div>
+      <!-- prende y apaga el modo developer -->
+      <button id="dev-chip" class="dev-chip off" aria-pressed="false" title="Activar modo developer">
+        <span class="dev-chip-icon">&lt;/&gt;</span>
+        <span class="dev-chip-label">Modo developer</span>
+        <span class="dev-chip-dot" aria-hidden="true"></span>
+      </button>
+      <!-- solo en modo developer: cada letra se enciende al usarse esa
+           operación del CRUD; al hacer clic muestra la tabla -->
+      <button id="dev-crud" class="dev-crud" title="Ver la tabla games" hidden>
+        <span data-crud="C" title="Create">C</span><span data-crud="R" title="Read">R</span><span data-crud="U" title="Update">U</span><span data-crud="D" title="Delete">D</span>
+      </button>
+    </div>
+
+    <!-- el tablero (6 filas × 5 casillas) se genera desde app.js -->
+    <div id="board" class="board" aria-label="Tablero" aria-live="polite"></div>
+
+    <!-- aparece al terminar una partida: empieza otra con una palabra distinta -->
+    <button id="btn-play-again" class="btn primary play-again" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5"/></svg>
+      Jugar de nuevo
+    </button>
+
+    <div id="keyboard" class="keyboard" aria-label="Teclado"></div>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <!-- tarjetas del modo developer (popover: así pueden quedar encima de las ventanas) -->
+  <div id="dev-stack" class="dev-stack" popover="manual" aria-live="polite"></div>
+
+  <!-- CÓMO JUGAR -->
+  <dialog id="dlg-help" class="modal">
+    <button class="modal-close" aria-label="Cerrar">×</button>
+    <h2>Cómo jugar</h2>
+    <p>Adivina la palabra oculta de <strong>5 letras</strong> en <strong>6 intentos</strong>. Cada intento debe ser una palabra válida. Las tildes no cuentan, la Ñ sí.</p>
+    <p>Después de cada intento, el color de las casillas te da pistas:</p>
+    <div class="example">
+      <div class="mini-row"><span class="tile correct">G</span><span class="tile">A</span><span class="tile">T</span><span class="tile">O</span><span class="tile">S</span></div>
+      <p><strong>G</strong> está en la palabra y en el lugar correcto.</p>
+      <div class="mini-row"><span class="tile">P</span><span class="tile present">I</span><span class="tile">A</span><span class="tile">N</span><span class="tile">O</span></div>
+      <p><strong>I</strong> está en la palabra, pero en otro lugar.</p>
+      <div class="mini-row"><span class="tile">V</span><span class="tile">E</span><span class="tile">R</span><span class="tile absent">D</span><span class="tile">E</span></div>
+      <p><strong>D</strong> no está en la palabra.</p>
+    </div>
+    <p class="muted">Hay una palabra nueva cada día. En modo <strong>Práctica</strong> puedes jugar todas las que quieras.</p>
+    <p class="dev-hint"><span>&lt;/&gt;</span> ¿Quieres ver cómo funciona por dentro? Activa el <strong>Modo developer</strong> en Ajustes.</p>
+  </dialog>
+
+  <!-- TABLA EN VIVO (modo developer) -->
+  <dialog id="dlg-dev-table" class="modal wide">
+    <button class="modal-close" aria-label="Cerrar">×</button>
+    <h2>Tabla games</h2>
+    <p class="muted" id="dev-table-count"></p>
+    <p>Así se ven tus partidas guardadas. Cada bloque es una fila: el CRUD crea, lee, cambia o borra estos objetos.</p>
+    <div id="dev-table-rows" class="dev-rows"></div>
+    <button class="btn small" id="btn-dev-off">Desactivar modo developer</button>
+  </dialog>
+
+  <!-- ESTADÍSTICAS -->
+  <dialog id="dlg-stats" class="modal">
+    <button class="modal-close" aria-label="Cerrar">×</button>
+    <h2>Estadísticas</h2>
+    <div class="stats-grid">
+      <div><strong id="st-played">0</strong><span>Jugadas</span></div>
+      <div><strong id="st-rate">0</strong><span>% Victorias</span></div>
+      <div><strong id="st-streak">0</strong><span>Racha actual</span></div>
+      <div><strong id="st-max">0</strong><span>Mejor racha</span></div>
+    </div>
+    <h3>Distribución de intentos</h3>
+    <div id="distribution" class="distribution"></div>
+    <div class="stats-footer">
+      <div>
+        <span class="muted">Siguiente palabra en</span>
+        <strong id="countdown">--:--:--</strong>
+      </div>
+      <div class="stats-actions">
+        <button class="btn" id="btn-stats-again">Jugar de nuevo</button>
+        <button class="btn primary" id="btn-share">Compartir</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- HISTORIAL (aquí se ve el CRUD: leer y borrar partidas) -->
+  <dialog id="dlg-history" class="modal wide">
+    <button class="modal-close" aria-label="Cerrar">×</button>
+    <h2>Historial</h2>
+    <p class="muted">Cada partida es una fila guardada en tu navegador.</p>
+    <div class="history-filters">
+      <label>Mostrar
+        <select id="history-filter">
+          <option value="all">Todas</option>
+          <option value="daily">Diarias</option>
+          <option value="practice">Práctica</option>
+        </select>
+      </label>
+    </div>
+    <ul id="history-list" class="history-list"></ul>
+  </dialog>
+
+  <!-- AJUSTES -->
+  <dialog id="dlg-settings" class="modal">
+    <button class="modal-close" aria-label="Cerrar">×</button>
+    <h2>Ajustes</h2>
+    <div class="setting">
+      <div><strong>Modo oscuro</strong><span class="muted">Colores para jugar de noche</span></div>
+      <button class="switch" id="sw-theme" role="switch" aria-checked="false" aria-label="Modo oscuro"></button>
+    </div>
+    <div class="setting">
+      <div><strong>Alto contraste</strong><span class="muted">Naranja y azul en vez de verde y amarillo</span></div>
+      <button class="switch" id="sw-contrast" role="switch" aria-checked="false" aria-label="Alto contraste"></button>
+    </div>
+    <div class="setting">
+      <div><strong>Modo developer &lt;/&gt;</strong><span class="muted">Explica qué pasa por detrás mientras juegas</span></div>
+      <button class="switch" id="sw-dev" role="switch" aria-checked="false" aria-label="Modo developer"></button>
+    </div>
+    <div class="setting danger">
+      <div><strong>Borrar todo</strong><span class="muted">Elimina historial y estadísticas</span></div>
+      <button class="btn danger" id="btn-reset">Borrar</button>
+    </div>
+  </dialog>
+
+  <script src="js/words.js?v=8"></script>
+  <script src="js/storage.js?v=8"></script>
+  <script src="js/game.js?v=8"></script>
+  <script src="js/dev.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
+</body>
+</html>
