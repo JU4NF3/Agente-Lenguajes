@@ -1,3 +1,146 @@
+document.getElementById('form-registro-admin').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const form = evento.target;
+
+  const { data, error } = await db.auth.signUp({
+    email: form.elements['admin-registro-correo'].value,
+    password: form.elements['admin-registro-password'].value,
+  });
+
+  if (error) {
+    document.getElementById('estado-sesion-admin').innerText = 'Error al registrar: ' + error.message;
+    return;
+  }
+
+  const { error: errorPerfil } = await db.from('admins_práctica').insert([{
+    id: data.user.id,
+    nombre: form.elements['admin-registro-nombre'].value.trim(),
+    correo: form.elements['admin-registro-correo'].value.trim(),
+  }]);
+
+  if (errorPerfil) {
+    document.getElementById('estado-sesion-admin').innerText = 'Cuenta creada, pero falló el perfil: ' + errorPerfil.message;
+    return;
+  }
+
+  document.getElementById('estado-sesion-admin').innerText = 'Cuenta de administrador creada. Ya puedes iniciar sesión.';
+  form.reset();
+
+  // vuelve al form de login para que entre con la cuenta recién creada
+  form.hidden = true;
+  document.getElementById('form-login-admin').hidden = false;
+});
+
+document.getElementById('form-login-admin').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const form = evento.target;
+
+  const { error } = await db.auth.signInWithPassword({
+    email: form.elements['admin-login-correo'].value,
+    password: form.elements['admin-login-password'].value,
+  });
+
+  if (error) {
+    document.getElementById('estado-sesion-admin').innerText = 'Error al iniciar sesión: ' + error.message;
+    return;
+  }
+
+  mostrarEstadoSesionAdmin();
+});
+
+// Muestra la zona de acceso (login/registro) o el panel con el CRUD,
+// según si quien entra es un admin confirmado. Un solo interruptor:
+// #zona-acceso-admin y #panel-admin siempre quedan al revés uno del otro.
+function aplicarAcceso(esAdmin) {
+  document.getElementById('zona-acceso-admin').hidden = esAdmin;
+  document.getElementById('panel-admin').hidden = !esAdmin;
+
+  if (esAdmin) {
+    // Al entrar como admin saltamos directo al inventario: revelamos
+    // #contenido (que empieza oculto) y lo traemos a la vista, así no hay
+    // que pasar por el hero ni pulsar "Ver productos".
+    const contenido = document.getElementById('contenido');
+    contenido.hidden = false;
+    contenido.classList.add('revelado');
+    contenido.scrollIntoView(); // salto directo, sin animación de scroll
+  } else {
+    // Al cerrar sesión volvemos arriba para ver bien la pantalla de login.
+    window.scrollTo(0, 0);
+  }
+}
+
+async function mostrarEstadoSesionAdmin() {
+  const { data } = await db.auth.getUser();
+  const estado = document.getElementById('estado-sesion-admin');
+
+  if (!data.user) {
+    estado.innerText = 'No has iniciado sesión.';
+    aplicarAcceso(false); // sin sesión → solo se ve la zona de acceso
+    return;
+  }
+
+  // Importante: tener sesión no basta — confirmamos que además exista
+  // su fila en admins_práctica.
+  const { data: perfil } = await db.from('admins_práctica').select('nombre').eq('id', data.user.id).single();
+
+  // Solo abrimos el panel si hay perfil de administrador. Una sesión sin
+  // perfil (p. ej. un usuario normal) se queda fuera.
+  if (perfil) {
+    estado.innerText = 'Sesión iniciada como ' + perfil.nombre + ' (admin).';
+    aplicarAcceso(true);
+  } else {
+    estado.innerText = 'Sesión iniciada, pero sin perfil de administrador.';
+    aplicarAcceso(false);
+  }
+}
+
+// Alternar entre iniciar sesión y registrarse: solo se ve uno a la vez.
+const formLogin = document.getElementById('form-login-admin');
+const formRegistro = document.getElementById('form-registro-admin');
+
+document.getElementById('ir-a-registro').addEventListener('click', () => {
+  formLogin.hidden = true;
+  formRegistro.hidden = false;
+});
+
+document.getElementById('ir-a-login').addEventListener('click', () => {
+  formRegistro.hidden = true;
+  formLogin.hidden = false;
+});
+
+// Vacía los dos forms y deja las contraseñas otra vez ocultas (ojo "cerrado").
+// Lo usamos al cerrar sesión para no dejar los datos escritos.
+function limpiarAcceso() {
+  formLogin.reset();
+  formRegistro.reset();
+  document.querySelectorAll('.campo-clave input').forEach((campo) => campo.type = 'password');
+  document.querySelectorAll('.ojo').forEach((boton) => {
+    boton.classList.remove('activo');
+    boton.setAttribute('aria-pressed', 'false');
+    boton.setAttribute('aria-label', 'Mostrar contraseña');
+  });
+}
+
+document.getElementById('btn-logout-admin').addEventListener('click', async () => {
+  await db.auth.signOut();
+  limpiarAcceso();          // borra lo escrito antes de volver al login
+  mostrarEstadoSesionAdmin();
+});
+
+// OJITO para ver/ocultar la contraseña. Un solo comportamiento para todos
+// los botones .ojo: alterna el type del input vecino entre password y text.
+document.querySelectorAll('.ojo').forEach((boton) => {
+  boton.addEventListener('click', () => {
+    const campo = boton.closest('.campo-clave').querySelector('input');
+    const mostrar = campo.type === 'password'; // true = pasamos a mostrarla
+    campo.type = mostrar ? 'text' : 'password';
+    boton.classList.toggle('activo', mostrar); // dispara la animación del tachado
+    boton.setAttribute('aria-pressed', String(mostrar));
+    boton.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+});
+
+mostrarEstadoSesionAdmin();
 //LEER TODOS (READ)
 // Antes esto era el listener del botón "Traer productos". Ahora es una
 // función con nombre: la llamamos al cargar la página y otra vez después
@@ -527,7 +670,7 @@ inputBusqueda.addEventListener('keydown', (evento) => {
 inputBusqueda.addEventListener('blur', ocultarSugerencias);
 
 //TEMA CLARO / OSCURO
-// El tema guardado ya se aplicó en el <head> (ver prueba2.html). Aquí solo
+// El tema guardado ya se aplicó en el <head> (ver admin.html). Aquí solo
 // manejamos el botón. Los colores viven en variables CSS: al cambiar
 // data-tema en <html>, el CSS usa los valores de :root[data-tema="oscuro"].
 const btnTema = document.getElementById('btn-tema');

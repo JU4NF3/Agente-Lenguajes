@@ -8,13 +8,13 @@
   <!-- CDN: la librería de Supabase va ANTES que nuestros scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- TIPOGRAFÍA: las mismas de prueba2.html
+  <!-- TIPOGRAFÍA: las mismas de admin.html
        Inter Tight → títulos y texto · IBM Plex Mono → etiquetas y botones -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <!-- Igual que en prueba2.html: aplica el tema guardado antes de pintar
+  <!-- Igual que en admin.html: aplica el tema guardado antes de pintar
        la página, para que no "parpadee" en blanco al recargar. Usa la misma
        clave 'tema', así el modo elegido se comparte entre las dos páginas -->
   <script>
@@ -27,7 +27,7 @@
 
   <style>
     /* ============================================================
-       VARIABLES: copiadas de prueba2.html para mantener el mismo look.
+       VARIABLES: copiadas de admin.html para mantener el mismo look.
        Blanco y negro, líneas finas, mucho espacio, tipografía grande.
        ============================================================ */
     :root {
@@ -382,7 +382,7 @@
 
     /* ========================== CENTRADO ========================== */
     /* ocupa toda la pantalla menos la barra, y centra la tarjeta en
-       las dos direcciones (igual que el hero de prueba2.html) */
+       las dos direcciones (igual que el hero de admin.html) */
     .centro {
       min-height: calc(100vh - 72px);
       min-height: calc(100svh - 72px);
@@ -430,7 +430,7 @@
       color: var(--suave);
     }
 
-    /* frase grande, como el hero de prueba2.html */
+    /* frase grande, como el hero de admin.html */
     #vista-bienvenida h1 {
       font-size: clamp(3rem, 9vw, 8rem);
       animation: subir 0.9s ease both;
@@ -607,7 +607,7 @@
     }
 
     /* el link lleva el mismo subrayado animado que "Ver productos" en
-       prueba2: se vacía hacia la derecha y se vuelve a llenar */
+       admin: se vacía hacia la derecha y se vuelve a llenar */
     .cambiar-vista a {
       padding-bottom: 2px;
       color: var(--texto);
@@ -677,7 +677,7 @@
       letter-spacing: -0.04em;
     }
 
-    /* la × gira al pasar el mouse, como en la tarjeta de prueba2 */
+    /* la × gira al pasar el mouse, como en la tarjeta de admin */
     .ventana-cerrar {
       position: absolute;
       top: 18px;
@@ -700,7 +700,7 @@
       color: var(--fondo);
     }
 
-    /* OPCIONES: filas separadas por líneas, como los desplegables de prueba2 */
+    /* OPCIONES: filas separadas por líneas, como los desplegables de admin */
     .opciones {
       margin: 0;
       padding: 0;
@@ -781,9 +781,9 @@
 </head>
 <body>
 
-  <!-- BARRA SUPERIOR: igual que en prueba2.html -->
+  <!-- BARRA SUPERIOR: igual que en admin.html -->
   <header class="barra-superior">
-    <a href="prueba2.html" class="logo">Inventario</a>
+    <a href="admin.html" class="logo">Inventario</a>
     <!-- el texto lo pone cliente.js según el tema actual -->
     <button type="button" id="btn-tema">Modo oscuro</button>
     <!-- PERFIL: siempre visible. cliente.js le pone la clase "con-sesion"
@@ -910,7 +910,7 @@
       <!-- VISTA 4: datos del cliente. Se llega desde Configuración →
            Actualizar datos; cliente.js lee la fila de cliente_práctica y
            llena estos campos. El "name" de cada input es igual al nombre
-           de la columna, igual que en form-producto de prueba2.html -->
+           de la columna, igual que en form-producto de admin.html -->
       <div class="vista" id="vista-perfil" hidden>
         <h1>Mis datos</h1>
 
@@ -951,7 +951,7 @@
   </main>
 
   <!-- VENTANA DE CONFIGURACIÓN: un <dialog>, igual que la tarjeta de
-       producto de prueba2.html. showModal() la abre encima de todo con el
+       producto de admin.html. showModal() la abre encima de todo con el
        fondo oscurecido, y Escape la cierra sola -->
   <dialog id="ventana-config" aria-labelledby="config-titulo">
     <article class="ventana">

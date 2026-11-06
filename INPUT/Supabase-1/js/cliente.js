@@ -179,7 +179,7 @@ document.getElementById('btn-config').addEventListener('click', () => {
   ventanaConfig.showModal(); // la abre encima de todo, con el fondo oscurecido
 });
 
-// Un solo listener para toda la ventana (igual que la tarjeta en prueba2.js):
+// Un solo listener para toda la ventana (igual que la tarjeta en admin.js):
 // según dónde fue el clic, hacemos una cosa u otra
 ventanaConfig.addEventListener('click', (event) => {
   // botón × → cerrar
@@ -342,7 +342,7 @@ async function cargarDatosCliente(id) {
   }
 }
 
-// UPDATE: mismo .update() que en prueba2.js; el .eq('id', id) asegura
+// UPDATE: mismo .update() que en admin.js; el .eq('id', id) asegura
 // que solo se cambie la fila de este cliente, no toda la tabla
 async function actualizarCliente(id, cambios) {
   const { data, error } = await db
@@ -421,7 +421,7 @@ mostrarEstadoSesion().then((usuario) => {
 
 //CAMBIAR ENTRE VISTAS: LOGIN, REGISTRO, BIENVENIDA Y MIS DATOS
 // Las vistas están siempre en el HTML; solo mostramos una a la vez
-// con el atributo hidden (igual que #contenido en prueba2.html).
+// con el atributo hidden (igual que #contenido en admin.html).
 function mostrarVista(vista) {
   document.getElementById('vista-login').hidden = vista !== 'login';
   document.getElementById('vista-registro').hidden = vista !== 'registro';
@@ -484,7 +484,7 @@ document.querySelectorAll('#form-login, #form-registro').forEach((form) => {
 });
 
 //TEMA CLARO / OSCURO
-// Mismo código que en prueba2.js. El tema guardado ya se aplicó en el
+// Mismo código que en admin.js. El tema guardado ya se aplicó en el
 // <head> de cliente.html; aquí solo manejamos el botón.
 const btnTema = document.getElementById('btn-tema');
 

@@ -1360,15 +1360,332 @@
         padding: 24px 20px;
       }
     }
+
+    /* ======================== ZONA DE ACCESO ======================
+       Pantalla de registro/login. Mismo look que el resto: variables,
+       líneas finas, tipografía grande. Ocupa toda la pantalla y se
+       centra; el admin.js la oculta cuando la sesión es válida. */
+    #zona-acceso-admin {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      padding: 48px 0;
+    }
+
+    /* el display:flex de arriba pisa el display:none del atributo hidden;
+       lo reimponemos para que, al iniciar sesión, el login desaparezca
+       de verdad (si no, sigue ahí al hacer scroll hacia arriba) */
+    #zona-acceso-admin[hidden] {
+      display: none;
+    }
+
+    /* mensaje de estado: queda arriba de las tarjetas, centrado */
+    #estado-sesion-admin {
+      margin: 0;
+      max-width: 420px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--suave);
+    }
+
+    /* las dos tarjetas (registro e inicio de sesión): solo se ve una a la vez */
+    #zona-acceso-admin form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: min(420px, 100%);
+      padding: 32px;
+      border: 1px solid var(--linea-suave);
+      border-radius: 20px;
+      background: var(--fondo);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    /* IMPORTANTE: display:flex de arriba pisa el display:none del atributo
+       hidden, así que lo volvemos a imponer para que hidden oculte de verdad */
+    #zona-acceso-admin form[hidden] {
+      display: none;
+    }
+
+    #zona-acceso-admin h3 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      text-transform: none; /* el título del form NO va en mayúsculas */
+    }
+
+    /* etiqueta arriba (mono, mayúsculas por la regla global) y campo abajo */
+    #zona-acceso-admin label {
+      color: var(--suave);
+      margin-bottom: -10px; /* pega la etiqueta a su campo */
+    }
+
+    #zona-acceso-admin input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--input-borde);
+      border-radius: 12px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #zona-acceso-admin input:hover {
+      border-color: #0a0a0a;
+    }
+
+    #zona-acceso-admin input:focus {
+      outline: 2px solid var(--texto);
+      outline-offset: -1px;
+    }
+
+    /* botón pastilla a todo lo ancho: SOLO el de enviar (type="submit").
+       Los enlaces "Regístrate"/"Inicia sesión" son type="button" y se
+       quedan como texto subrayado (ver .enlace más abajo). */
+    #zona-acceso-admin button[type="submit"] {
+      margin-top: 8px;
+      padding: 12px 20px;
+      border: 1px solid var(--boton-borde);
+      border-radius: 999px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    #zona-acceso-admin button[type="submit"]:hover {
+      background: var(--boton-hover-fondo);
+      color: var(--boton-hover-texto);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #zona-acceso-admin button[type="submit"]:active {
+      transform: scale(0.96);
+      box-shadow: none;
+    }
+
+    /* pie del form: "¿No tienes cuenta? Regístrate" */
+    .acceso-cambiar {
+      margin: 0;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--suave);
+    }
+
+    /* el "Regístrate" / "Inicia sesión" es un <button> disfrazado de enlace:
+       sin caja, solo texto subrayado que combina con el resto. El subrayado
+       NO es text-decoration sino un degradado de fondo, para poder animarlo. */
+    .enlace {
+      margin: 0;
+      padding: 0 0 2px;
+      border: none;
+      color: var(--texto);
+      font: inherit;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: normal;
+      text-decoration: none;
+      cursor: pointer;
+      /* la rayita: una línea de 1px pegada abajo, hecha con un degradado */
+      background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
+    }
+
+    /* al pasar el mouse la rayita se vacía hacia la derecha y vuelve a
+       llenarse desde la izquierda (igual que en cliente.html) */
+    .enlace:hover {
+      animation: subrayar 0.6s ease forwards;
+    }
+
+    @keyframes subrayar {
+      0%   { background-size: 100% 1px; background-position: right bottom; }
+      50%  { background-size: 0% 1px;   background-position: right bottom; }
+      51%  { background-size: 0% 1px;   background-position: left bottom; }
+      100% { background-size: 100% 1px; background-position: left bottom; }
+    }
+
+    /* CAMPO DE CONTRASEÑA CON OJITO
+       El input y el botón del ojo comparten una caja relativa; el ojo se
+       coloca absoluto a la derecha, encima del input. */
+    .campo-clave {
+      position: relative;
+    }
+
+    /* hueco a la derecha para que el texto no quede debajo del ojo */
+    .campo-clave input {
+      padding-right: 46px;
+    }
+
+    .ojo {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: none;
+      color: var(--suave);
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .ojo:hover {
+      color: var(--texto);
+      background: var(--linea-suave);
+    }
+
+    .ojo svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* la pupila es un punto relleno; se encoge cuando se tacha el ojo */
+    .ojo-pupila {
+      fill: currentColor;
+      stroke: none;
+      transform-origin: 12px 12px;
+      transition: transform 0.25s ease;
+    }
+
+    /* la rayita que tacha el ojo: por defecto está "sin dibujar"
+       (dashoffset = su largo). Al mostrar la contraseña se dibuja. */
+    .ojo-tachado {
+      stroke-dasharray: 26;
+      stroke-dashoffset: 26;
+      transition: stroke-dashoffset 0.3s ease;
+    }
+
+    /* .activo = contraseña visible → aparece el tachado y la pupila se achica */
+    .ojo.activo .ojo-tachado {
+      stroke-dashoffset: 0;
+    }
+
+    .ojo.activo .ojo-pupila {
+      transform: scale(0.15);
+    }
+
+    /* "Cerrar sesión" vive en la barra superior, junto al botón de tema.
+       Mismo tamaño que #btn-tema pero en hueco (fondo transparente). */
+    #btn-logout-admin {
+      padding: 11px 20px;
+      border: 1px solid var(--suave);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    #btn-logout-admin:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #btn-logout-admin:active {
+      transform: scale(0.96);
+      box-shadow: none;
+    }
   </style>
 </head>
 <body>
+
+  <section id="zona-acceso-admin">
+  <p id="estado-sesion-admin" role="status">No has iniciado sesión.</p>
+
+  <!-- al entrar solo se ve este form. El enlace de abajo lleva al registro -->
+  <form id="form-login-admin">
+    <h3>Iniciar sesión admin</h3>
+    <label for="admin-login-correo">Correo</label>
+    <input id="admin-login-correo" type="email" required>
+
+    <label for="admin-login-password">Contraseña</label>
+    <div class="campo-clave">
+      <input id="admin-login-password" type="password" required>
+      <!-- type="button" para que NO envíe el form; el JS alterna la visibilidad -->
+      <button type="button" class="ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="ojo-contorno" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+          <circle class="ojo-pupila" cx="12" cy="12" r="3.2"/>
+          <line class="ojo-tachado" x1="3" y1="21" x2="21" y2="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <button type="submit">Iniciar sesión</button>
+
+    <p class="acceso-cambiar">¿No tienes cuenta?
+      <button type="button" id="ir-a-registro" class="enlace">Regístrate</button>
+    </p>
+  </form>
+
+  <!-- empieza oculto (hidden): solo aparece al pulsar "Regístrate" -->
+  <form id="form-registro-admin" hidden>
+    <h3>Registrar administrador</h3>
+    <label for="admin-registro-nombre">Nombre</label>
+    <input id="admin-registro-nombre" type="text" required>
+
+    <label for="admin-registro-correo">Correo</label>
+    <input id="admin-registro-correo" type="email" required>
+
+    <label for="admin-registro-password">Contraseña</label>
+    <div class="campo-clave">
+      <input id="admin-registro-password" type="password" minlength="6" required>
+      <button type="button" class="ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="ojo-contorno" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+          <circle class="ojo-pupila" cx="12" cy="12" r="3.2"/>
+          <line class="ojo-tachado" x1="3" y1="21" x2="21" y2="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <button type="submit">Crear cuenta de administrador</button>
+
+    <p class="acceso-cambiar">¿Ya tienes cuenta?
+      <button type="button" id="ir-a-login" class="enlace">Inicia sesión</button>
+    </p>
+  </form>
+</section>
+
+<!-- PANEL REAL (catálogo, formularios...): queda oculto hasta que admin.js
+     confirme sesión iniciada Y que exista fila en admins_práctica -->
+<div id="panel-admin" hidden>
 
   <!-- BARRA SUPERIOR: logo, búsqueda y botón de tema -->
   <header class="barra-superior">
     <a href="#" class="logo">Inventario</a>
 
-    <!-- Filtro: el select decide si se busca por nombre o por id (ver prueba2.js) -->
+    <!-- Filtro: el select decide si se busca por nombre o por id (ver admin.js) -->
     <form id="form-filtro">
       <!-- el usuario elige por qué columna buscar. El JS (mejorarSelect) lo
            convierte en una lista con el estilo de la página -->
@@ -1387,13 +1704,16 @@
 
     <!-- el texto lo pone el JS según el tema actual -->
     <button type="button" id="btn-tema">Modo oscuro</button>
+
+    <!-- cierra la sesión del admin y vuelve a la pantalla de acceso -->
+    <button type="button" id="btn-logout-admin">Cerrar sesión</button>
   </header>
 
   <!-- HERO: al entrar es lo ÚNICO que se ve, centrado en la pantalla -->
   <section class="hero">
     <p class="rotulo hero-rotulo">Inventario de productos — 2026</p>
     <h1>Un inventario diferente<br><span>para tus productos.</span></h1>
-    <!-- al pulsarlo se muestra el contenido de abajo (ver prueba2.js) -->
+    <!-- al pulsarlo se muestra el contenido de abajo (ver admin.js) -->
     <!-- el <span> lleva el subrayado animado; el botón, la animación de entrada -->
     <button type="button" id="btn-ver-productos"><span>Ver productos</span></button>
   </section>
@@ -1480,7 +1800,7 @@
           <!-- vista previa del producto elegido, para no borrar el equivocado -->
           <div id="vista-eliminar"></div>
 
-          <!-- 1er clic: "¿Seguro?" · 2do clic: borra (ver form-eliminar en prueba2.js) -->
+          <!-- 1er clic: "¿Seguro?" · 2do clic: borra (ver form-eliminar en admin.js) -->
           <button type="submit" id="btn-eliminar" class="btn-eliminar">Eliminar</button>
         </form>
       </details>
@@ -1490,11 +1810,14 @@
 
     <main class="principal" id="productos">
       <h2 class="titulo-seccion rotulo">Todos los productos <span id="contador"></span></h2>
-      <!-- se llena solo al entrar a la página (cargarProductos en prueba2.js) -->
+      <!-- se llena solo al entrar a la página (cargarProductos en admin.js) -->
       <div id="todos-productos" class="vacio">Cargando productos...</div>
     </main>
 
   </div>
+
+</div>
+<!-- fin de #panel-admin -->
 
   <!-- TARJETA DEL PRODUCTO: <dialog> es una ventana que trae el navegador.
        showModal() la abre encima de todo y oscurece el fondo; Escape la
@@ -1511,6 +1834,6 @@
        prueba.js, por eso tiene que cargarse ANTES que ese archivo -->
   <script src="js/supabaseClient.js"></script>
   <!-- prueba.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
-  <script src="js/prueba2.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>
