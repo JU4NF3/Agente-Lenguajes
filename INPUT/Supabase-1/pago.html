@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago</title>
+
+  <!-- CDN de Supabase: va ANTES de nuestros scripts (coherencia con el resto;
+       aquí todavía no lo usamos, pero lo dejamos listo para cuando el pedido
+       se guarde en una tabla). -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Mismas tipografías que galeria/cliente/admin -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Aplica el tema guardado ANTES de pintar (misma clave 'tema') -->
+  <script>
+    const temaGuardado = localStorage.getItem('tema');
+    const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (temaGuardado === 'oscuro' || (temaGuardado === null && prefiereOscuro)) {
+      document.documentElement.dataset.tema = 'oscuro';
+    }
+  </script>
+
+  <style>
+    /* ===== TOKENS: copiados de galeria.html para el mismo look ===== */
+    :root {
+      --sans: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+      --fondo: #ffffff;
+      --texto: #0a0a0a;
+      --suave: #636363;
+      --linea: #0a0a0a;
+      --linea-suave: #e3e3e3;
+
+      --boton-fondo: #0a0a0a;
+      --boton-texto: #ffffff;
+      --boton-borde: #0a0a0a;
+      --boton-hover-fondo: #ffffff;
+      --boton-hover-texto: #0a0a0a;
+
+      --input-fondo: #ffffff;
+      --input-texto: #0a0a0a;
+      --input-borde: #a3a3a3;
+
+      --verde: #16a34a;
+    }
+
+    :root[data-tema="oscuro"] {
+      color-scheme: dark;
+      --fondo: #0b0b0b;
+      --texto: #f2f2f2;
+      --suave: #a6a6a6;
+      --linea: #f2f2f2;
+      --linea-suave: #2b2b2b;
+
+      --boton-fondo: #ffffff;
+      --boton-texto: #0a0a0a;
+      --boton-borde: #ffffff;
+      --boton-hover-fondo: #d4d4d4;
+      --boton-hover-texto: #0a0a0a;
+
+      --input-fondo: #ffffff;
+      --input-texto: #0a0a0a;
+      --input-borde: #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0 clamp(16px, 4vw, 56px) 80px;
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      background: var(--fondo);
+      color: var(--texto);
+      transition: background 0.25s, color 0.25s;
+    }
+
+    a { color: inherit; }
+
+    :focus-visible { outline: 2px solid var(--texto); outline-offset: 2px; }
+
+    .rotulo {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ===== BARRA SUPERIOR (igual que galeria) ===== */
+    .barra-superior {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 18px 0;
+      background: var(--fondo);
+      border-bottom: 1px solid var(--linea);
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      text-decoration: none;
+      line-height: 1;
+      transition: letter-spacing 0.3s;
+    }
+    .logo:hover { letter-spacing: -0.02em; }
+
+    .barra-acciones { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+
+    #btn-tema {
+      padding: 10px 18px;
+      border: 1px solid var(--boton-borde);
+      border-radius: 999px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    #btn-tema:hover { background: var(--boton-hover-fondo); color: var(--boton-hover-texto); transform: translateY(-2px); }
+    #btn-tema::before {
+      content: '';
+      display: inline-block;
+      width: 10px; height: 10px;
+      margin-right: 8px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+      vertical-align: -1px;
+      transition: transform 0.4s;
+    }
+    #btn-tema:hover::before { transform: rotate(180deg); }
+
+    /* ===== LAYOUT: formulario + resumen ===== */
+    .centro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: clamp(24px, 4vw, 56px);
+      align-items: start;
+      max-width: 980px;
+      margin: 0 auto;
+      padding-top: clamp(28px, 5vw, 56px);
+      animation: subir 0.7s ease both;
+    }
+
+    @keyframes subir {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* en pantallas angostas: una sola columna, resumen arriba */
+    @media (max-width: 760px) {
+      .centro { grid-template-columns: 1fr; }
+      .resumen { order: -1; }
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .sub { margin: 0 0 28px; color: var(--suave); }
+
+    /* aviso de que es una demo */
+    .demo-aviso {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 0 0 24px;
+      padding: 12px 14px;
+      border: 1px dashed var(--suave);
+      border-radius: 12px;
+      color: var(--suave);
+      font-size: 0.82rem;
+    }
+    .demo-aviso svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* ===== FORMULARIO ===== */
+    form { display: flex; flex-direction: column; gap: 16px; }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--suave);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--input-borde);
+      border-radius: 12px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font: inherit;
+      text-transform: none;
+      letter-spacing: normal;
+      transition: border-color 0.2s;
+    }
+    input::placeholder { color: #9a9a9a; }
+    input:hover { border-color: #0a0a0a; }
+    input:focus { outline: 2px solid var(--texto); outline-offset: -1px; }
+
+    /* número de tarjeta: monoespaciado, se lee como tarjeta */
+    #tarjeta { font-family: var(--mono); letter-spacing: 0.12em; }
+
+    /* fila de dos campos (vencimiento + CVV) */
+    .fila-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .error-campo {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      text-transform: none;
+      letter-spacing: 0;
+      color: #dc2626;
+      min-height: 0;
+    }
+
+    button[type="submit"] {
+      margin-top: 8px;
+      padding: 14px 20px;
+      border: 1px solid var(--boton-borde);
+      border-radius: 999px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    button[type="submit"]:hover {
+      background: var(--boton-hover-fondo);
+      color: var(--boton-hover-texto);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    button[type="submit"]:active { transform: scale(0.97); box-shadow: none; }
+    button[type="submit"]:disabled { opacity: 0.6; cursor: progress; transform: none; box-shadow: none; }
+    button[type="submit"]::after {
+      content: '→';
+      display: inline-block;
+      margin-left: 8px;
+      transition: transform 0.2s;
+    }
+    button[type="submit"]:hover::after { transform: translateX(4px); }
+
+    .volver {
+      margin: 20px 0 0;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .volver a {
+      text-decoration: none;
+      color: var(--suave);
+      padding-bottom: 2px;
+      background: linear-gradient(currentColor, currentColor) left bottom / 0% 1px no-repeat;
+      transition: color 0.2s, background-size 0.3s;
+    }
+    .volver a:hover { color: var(--texto); background-size: 100% 1px; }
+
+    /* ===== RESUMEN DEL PEDIDO ===== */
+    .resumen {
+      padding: 22px;
+      border: 1px solid var(--linea);
+      border-radius: 20px;
+      background: var(--fondo);
+    }
+    .resumen h2 {
+      margin: 0 0 16px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+    .resumen-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--linea-suave);
+      font-size: 0.9rem;
+    }
+    .resumen-item:first-of-type { border-top: none; }
+    .resumen-item .ri-nombre { color: var(--texto); }
+    .resumen-item .ri-cant { color: var(--suave); font-family: var(--mono); font-size: 0.78rem; }
+    .resumen-item .ri-precio { font-family: var(--mono); white-space: nowrap; }
+
+    .resumen-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 14px;
+      padding-top: 16px;
+      border-top: 1px solid var(--linea);
+    }
+    .resumen-total .rt-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--suave);
+    }
+    .resumen-total .rt-valor { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.03em; }
+
+    .resumen-vacio { color: var(--suave); font-size: 0.9rem; }
+
+    /* ===== VISTA DE ÉXITO ===== */
+    #vista-exito { display: none; }
+    body.pagado #vista-pago { display: none; }
+    body.pagado #vista-exito { display: block; }
+
+    .exito {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 520px;
+      margin: 0 auto;
+      padding-top: clamp(48px, 10vw, 110px);
+    }
+
+    .exito-circulo {
+      width: 108px;
+      height: 108px;
+      margin-bottom: 28px;
+    }
+    .exito-circulo circle {
+      stroke: var(--verde);
+      stroke-width: 4;
+      fill: none;
+      stroke-dasharray: 303;
+      stroke-dashoffset: 303;
+      animation: trazar-circulo 0.6s ease forwards;
+    }
+    .exito-circulo path {
+      stroke: var(--verde);
+      stroke-width: 5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 60;
+      stroke-dashoffset: 60;
+      animation: trazar-check 0.4s 0.5s ease forwards;
+    }
+    @keyframes trazar-circulo { to { stroke-dashoffset: 0; } }
+    @keyframes trazar-check   { to { stroke-dashoffset: 0; } }
+
+    .exito h1 { animation: subir 0.6s 0.6s ease both; }
+    .exito .sub { animation: subir 0.6s 0.75s ease both; }
+
+    .exito-total {
+      margin: 4px 0 28px;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--suave);
+      animation: subir 0.6s 0.85s ease both;
+    }
+
+    #btn-estado {
+      padding: 14px 26px;
+      border: 1px solid var(--boton-borde);
+      border-radius: 999px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      cursor: pointer;
+      animation: subir 0.6s 0.95s ease both;
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    #btn-estado:hover {
+      background: var(--boton-hover-fondo);
+      color: var(--boton-hover-texto);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    #btn-estado::after {
+      content: '→';
+      display: inline-block;
+      margin-left: 8px;
+      transition: transform 0.2s;
+    }
+    #btn-estado:hover::after { transform: translateX(4px); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .exito-circulo circle, .exito-circulo path { stroke-dashoffset: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR -->
+  <header class="barra-superior">
+    <a href="galeria.html" class="logo">Pago</a>
+    <div class="barra-acciones">
+      <button type="button" id="btn-tema">Modo oscuro</button>
+    </div>
+  </header>
+
+  <!-- ===== VISTA 1: FORMULARIO DE PAGO ===== -->
+  <main id="vista-pago" class="centro">
+    <section>
+      <p class="rotulo" style="color:var(--suave)">Checkout</p>
+      <h1>Datos de pago</h1>
+      <p class="sub">Completa los datos de tu tarjeta para confirmar el pedido.</p>
+
+      <div class="demo-aviso">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 8h.01M11 12h1v4h1"/>
+        </svg>
+        <span>Esto es una <strong>demostración</strong>. No se procesa ningún pago real ni se guardan los datos de tu tarjeta.</span>
+      </div>
+
+      <!-- novalidate: validamos nosotros con mensajes propios -->
+      <form id="form-pago" novalidate>
+        <label>Nombre en la tarjeta
+          <input id="nombre" type="text" autocomplete="cc-name" placeholder="Como aparece en la tarjeta" required>
+          <span class="error-campo" id="error-nombre"></span>
+        </label>
+
+        <label>Número de tarjeta
+          <input id="tarjeta" type="text" inputmode="numeric" autocomplete="cc-number"
+                 placeholder="0000 0000 0000 0000" maxlength="19" required>
+          <span class="error-campo" id="error-tarjeta"></span>
+        </label>
+
+        <div class="fila-dos">
+          <label>Vencimiento
+            <input id="vence" type="text" inputmode="numeric" autocomplete="cc-exp"
+                   placeholder="MM/AA" maxlength="5">
+          </label>
+          <label>CVV
+            <input id="cvv" type="text" inputmode="numeric" autocomplete="cc-csc"
+                   placeholder="123" maxlength="4">
+          </label>
+        </div>
+
+        <button type="submit" id="btn-pagar-ahora">Pagar <span id="btn-monto"></span></button>
+      </form>
+
+      <p class="volver"><a href="galeria.html">← Volver a la tienda</a></p>
+    </section>
+
+    <!-- RESUMEN: lo llena pago.js desde localStorage 'pedido-actual' -->
+    <aside class="resumen">
+      <h2>Tu pedido</h2>
+      <div id="resumen-items"></div>
+      <div class="resumen-total">
+        <span class="rt-label">Total</span>
+        <span class="rt-valor" id="resumen-total">$0</span>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ===== VISTA 2: ÉXITO ===== -->
+  <section id="vista-exito">
+    <div class="exito">
+      <svg class="exito-circulo" viewBox="0 0 104 104" aria-hidden="true">
+        <circle cx="52" cy="52" r="48"/>
+        <path d="M32 54l14 14 26-30"/>
+      </svg>
+      <h1>Pedido pagado con éxito</h1>
+      <p class="sub">Gracias por tu compra. Ya estamos preparando tu pedido.</p>
+      <p class="exito-total" id="exito-total"></p>
+      <a href="estado-pedido.html" id="btn-estado">Ver estado del pedido</a>
+    </div>
+  </section>
+
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/pago.js"></script>
+</body>
+</html>

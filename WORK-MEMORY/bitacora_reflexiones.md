@@ -141,3 +141,19 @@ tiene RLS activado: comprobamos que, usando solo la anon key, cualquiera puede l
 escribir datos sin iniciar sesión, tanto desde la consola del navegador como desde la terminal
 con `curl`. Me quedó claro que la anon key es pública por diseño, y que lo que de verdad protege
 los datos no es esconderla sino el RLS; sin él, esa key funciona como una llave maestra.
+
+## 2026-11-12
+Hoy en Supabase creé la tabla de pedidos y le puse sus policies de RLS, y armé las
+foreign keys para que cada pedido quede conectado con el cliente y con los productos.
+En la página monté todo el flujo de compra: cuando el cliente le da a "Pagar" en el
+carrito ahora pasa a una pantalla de pago (de práctica, solo pide nombre y número de
+tarjeta, no es un pago real), sale una animación de "pedido pagado con éxito" y de ahí
+va a una pantalla de seguimiento al estilo Mercado Libre, con una línea de estados y un
+camioncito animado que muestra dónde va el pedido. Después ajusté la animación del camión
+para que se quede en el suelo con un movimiento suave en vez de estar flotando. También
+puse el botón de perfil (el del borde rojo o verde según si hay sesión) con su menú de
+Configuración y Actualizar datos dentro de la galería, hice que al iniciar sesión como
+cliente me lleve directo a la tienda, y que "Mi cuenta" abra en el formulario de mis
+datos en lugar de la pantalla de bienvenida. Me quedó pendiente conectar el formulario de
+pago con la tabla de pedidos, porque la tabla todavía está vacía y me falta pasar los
+nombres exactos de las columnas.

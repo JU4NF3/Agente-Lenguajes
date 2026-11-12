@@ -126,8 +126,20 @@ document.getElementById('form-login').addEventListener('submit', async (event) =
 
   if (usuario) {
     form.reset();
-    mostrarEstadoSesion(); // definida en la sección 5
     mostrarAviso('Sesión iniciada');
+
+    // Según el rol: un CLIENTE normal va directo a la tienda (galeria.html);
+    // un admin (u otro rol) se queda en esta página con su bienvenida.
+    // Solo redirige aquí, justo tras el login: si entras a cliente.html ya
+    // con sesión, mostrarEstadoSesion() muestra la bienvenida y el perfil
+    // siguen accesibles (no hay bucle de redirección).
+    const cliente = await leerCliente(usuario.id);
+    if (cliente?.rol === 'cliente') {
+      window.location.href = 'galeria.html';
+      return;
+    }
+
+    mostrarEstadoSesion(); // definida en la sección 5 (admin / rol desconocido)
   } else {
     document.getElementById('estado-sesion').textContent =
       'Correo o contraseña incorrectos.';
@@ -279,9 +291,11 @@ async function mostrarEstadoSesion() {
   // nombre y para tener listo el formulario "Mis datos");
   // sin sesión → de vuelta al formulario de iniciar sesión
   if (data.user) {
-    // mientras llegan los datos, el correo hace de nombre provisional
+    // Con sesión: "Mi cuenta" abre directo en el formulario "Mis datos"
+    // (ya no en la pantalla grande de "Bienvenido"). cargarDatosCliente lo
+    // llena, y si no encuentra la fila cae en la bienvenida como respaldo.
     document.getElementById('bienvenida-nombre').textContent = data.user.email;
-    mostrarVista('bienvenida');
+    mostrarVista('perfil');
     cargarDatosCliente(data.user.id);
   } else {
     mostrarVista('login');
@@ -334,9 +348,12 @@ async function cargarDatosCliente(id) {
 
   if (cliente) {
     llenarFormularioPerfil(cliente);
+    mostrarVista('perfil'); // abrir directo en "Mis datos"
   } else {
     // pasa si el registro creó el usuario en Auth pero falló el insert
-    // en cliente_práctica (o si el RLS no deja leer la fila)
+    // en cliente_práctica (o si el RLS no deja leer la fila). También es el
+    // caso de un admin sin fila de cliente: le dejamos la bienvenida.
+    mostrarVista('bienvenida');
     document.getElementById('estado-sesion').textContent =
       'No se encontraron tus datos. Revisa la consola.';
   }
@@ -431,10 +448,10 @@ function mostrarVista(vista) {
   document.getElementById('panel-cuenta').classList.toggle('ancho', vista === 'bienvenida');
 }
 
-// "← Volver al inicio" en Mis datos → de vuelta a la bienvenida
+// "← Volver al inicio" en Mis datos → de vuelta a la tienda (galería)
 document.getElementById('volver-inicio').addEventListener('click', (event) => {
   event.preventDefault();
-  mostrarVista('bienvenida');
+  window.location.href = 'galeria.html';
 });
 
 document.getElementById('ir-registro').addEventListener('click', (event) => {

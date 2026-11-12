@@ -533,11 +533,38 @@ carritoDialog.addEventListener('click', (evento) => {
 
 document.getElementById('btn-vaciar').addEventListener('click', vaciarCarrito);
 
-// "Pagar" todavía no hace nada (no hay pasarela): avisamos y vaciamos
+// "Pagar": guardamos una FOTO del pedido en localStorage y pasamos a la
+// pantalla de pago (pago.html). Esa foto la leen pago.html y
+// estado-pedido.html. TODO Supabase: más adelante este pedido se
+// insertará en una tabla pedidos_práctica en vez de localStorage.
 btnPagar.addEventListener('click', () => {
-  mostrarAviso(`¡Gracias! Pedido de ${formatoPesos(totalCarrito())} (demo)`);
-  vaciarCarrito();
+  if (contarCarrito() === 0) {
+    mostrarAviso('Tu carrito está vacío');
+    return;
+  }
+
+  // items con nombre, cantidad y precio YA con descuento, más el total.
+  const items = Object.entries(carrito).map(([id, cantidad]) => {
+    const p = PRODUCTOS.find((x) => x.id === Number(id));
+    return {
+      id: Number(id),
+      nombre: p ? p.nombre : 'Producto',
+      cantidad,
+      precio: p ? precioFinal(p) : 0,
+    };
+  });
+
+  const pedido = {
+    items,
+    total: totalCarrito(),
+    fecha: new Date().toISOString(),
+    pagado: false,
+  };
+
+  localStorage.setItem('pedido-actual', JSON.stringify(pedido));
+  vaciarCarrito();                 // el carrito ya "viajó" al pedido
   carritoDialog.close();
+  window.location.href = 'pago.html';
 });
 
 // ---- 14) AVISO FLOTANTE (igual que en cliente.js) ----

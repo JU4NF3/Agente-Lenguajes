@@ -1094,6 +1094,166 @@
       to   { opacity: 1; transform: translate(-50%, 0); }
     }
 
+    /* ============ PERFIL EN LA BARRA (portado de cliente.html) ============ */
+    :root { --verde: #16a34a; --rojo: #dc2626; }
+
+    #perfil { position: relative; }
+    #perfil[hidden] { display: none; }
+
+    /* AVATAR: inicial del correo (con sesión) o silueta (sin). Borde verde
+       con sesión, rojo sin sesión. */
+    #avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--verde);
+      border-radius: 50%;
+      outline: 2px solid var(--fondo);
+      outline-offset: -4px;
+      background: var(--boton-fondo);
+      color: var(--boton-texto);
+      padding: 0;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    #perfil.sin-sesion #avatar { border-color: var(--rojo); }
+    #perfil.sin-sesion #avatar-letra,
+    #perfil.con-sesion .avatar-silueta { display: none; }
+    #perfil.sin-sesion .menu-con-sesion,
+    #perfil.con-sesion .menu-sin-sesion { display: none; }
+    #avatar:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+    #avatar:active { transform: scale(0.96); }
+
+    /* MENÚ DESPLEGABLE que cuelga del avatar */
+    #menu-perfil {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 260px;
+      padding: 18px;
+      border: 1px solid var(--linea);
+      border-radius: 16px;
+      background: var(--fondo);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+      z-index: 40;
+      animation: perfil-aparecer 0.25s ease;
+    }
+    #menu-perfil[hidden] { display: none; }
+    #menu-perfil .rotulo { margin: 0 0 4px; color: var(--suave); }
+    #perfil-correo, .menu-mensaje { margin: 0 0 16px; font-weight: 500; overflow-wrap: anywhere; }
+    .menu-mensaje::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--rojo);
+      vertical-align: 1px;
+    }
+    #menu-perfil button {
+      width: 100%;
+      padding: 11px 20px;
+      border: 1px solid var(--suave);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--texto);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #menu-perfil button:hover { background: var(--texto); color: var(--fondo); border-color: var(--texto); }
+    #btn-config { margin-bottom: 8px; }
+    #menu-perfil #btn-menu-login { background: var(--boton-fondo); color: var(--boton-texto); border-color: var(--boton-borde); }
+    #menu-perfil #btn-menu-login:hover { background: var(--boton-hover-fondo); color: var(--boton-hover-texto); }
+    #btn-menu-login::after { content: '→'; display: inline-block; margin-left: 6px; transition: transform 0.2s; }
+    #btn-menu-login:hover::after { transform: translateX(4px); }
+
+    /* VENTANA DE CONFIGURACIÓN (mismo <dialog> que en cliente.html) */
+    #ventana-config {
+      width: min(440px, calc(100% - 32px));
+      padding: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
+    }
+    #ventana-config::backdrop { background: rgba(10,10,10,0.55); backdrop-filter: blur(4px); animation: perfil-fundido 0.25s ease; }
+    .ventana {
+      position: relative;
+      padding: 28px;
+      border: 1px solid var(--linea);
+      border-radius: 24px;
+      background: var(--fondo);
+      color: var(--texto);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+      animation: perfil-emerger 0.35s cubic-bezier(0.2,0.9,0.3,1.1);
+    }
+    .ventana .rotulo { margin: 0 0 4px; color: var(--suave); }
+    .ventana h2 { margin: 0 0 20px; font-size: 1.8rem; font-weight: 500; letter-spacing: -0.04em; }
+    .ventana-cerrar {
+      position: absolute;
+      top: 18px; right: 18px;
+      width: 38px; height: 38px;
+      border: 1px solid var(--linea);
+      border-radius: 50%;
+      background: var(--fondo);
+      color: var(--texto);
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.25s, background 0.2s, color 0.2s;
+    }
+    .ventana-cerrar:hover { transform: rotate(90deg); background: var(--texto); color: var(--fondo); }
+    .opciones { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--linea); }
+    .opcion {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+      padding: 16px 40px 16px 0;
+      border: none;
+      border-top: 1px solid var(--linea);
+      background: none;
+      color: var(--texto);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: padding-left 0.25s;
+    }
+    .opcion:hover { padding-left: 6px; }
+    .opcion::after { content: '→'; position: absolute; top: 50%; right: 4px; transform: translateY(-50%); transition: transform 0.2s; }
+    .opcion:hover::after { transform: translate(4px, -50%); }
+    .opcion-titulo { font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; }
+    .opcion-desc { color: var(--suave); font-size: 0.85rem; }
+    .opcion-pronto {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border: 1px solid var(--suave);
+      border-radius: 999px;
+      color: var(--suave);
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      vertical-align: 2px;
+    }
+
+    @keyframes perfil-aparecer { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes perfil-emerger { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes perfil-fundido { from { opacity: 0; } to { opacity: 1; } }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
@@ -1122,13 +1282,33 @@
         <span id="carrito-cuenta" class="carrito-cuenta" hidden>0</span>
       </button>
 
-      <!-- cuenta → la página del cliente (login / perfil) -->
-      <a href="cliente.html" class="cuenta" aria-label="Mi cuenta">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-          <circle cx="12" cy="8" r="4"/>
-          <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
-        </svg>
-      </a>
+      <!-- PERFIL: el botón rojo/verde con su menú (lo maneja perfil-galeria.js).
+           hidden hasta saber si hay sesión, para no parpadear en rojo. -->
+      <div id="perfil" hidden>
+        <button type="button" id="avatar" aria-expanded="false" aria-controls="menu-perfil" aria-label="Mi cuenta">
+          <span id="avatar-letra"></span>
+          <svg class="avatar-silueta" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </button>
+
+        <div id="menu-perfil" hidden>
+          <!-- con sesión -->
+          <div class="menu-con-sesion">
+            <p class="rotulo">Sesión iniciada como</p>
+            <p id="perfil-correo"></p>
+            <button id="btn-config" type="button">Configuración</button>
+            <button id="btn-logout" type="button">Cerrar sesión</button>
+          </div>
+          <!-- sin sesión -->
+          <div class="menu-sin-sesion">
+            <p class="rotulo">Mi cuenta</p>
+            <p class="menu-mensaje">No hay una sesión iniciada</p>
+            <button id="btn-menu-login" type="button">Iniciar sesión</button>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -1220,6 +1400,17 @@
     </div>
   </dialog>
 
+  <!-- VENTANA DE CONFIGURACIÓN: misma que en cliente.html. perfil-galeria.js
+       llena #lista-opciones con las opciones (Actualizar datos, etc.) -->
+  <dialog id="ventana-config" aria-labelledby="config-titulo">
+    <article class="ventana">
+      <button type="button" class="ventana-cerrar" aria-label="Cerrar">×</button>
+      <p class="rotulo">Mi cuenta</p>
+      <h2 id="config-titulo">Configuración</h2>
+      <ul class="opciones" id="lista-opciones"></ul>
+    </article>
+  </dialog>
+
   <!-- aviso flotante -->
   <div id="aviso" role="status" hidden></div>
 
@@ -1227,5 +1418,6 @@
        supabaseClient.js y galeria.js lo usa para leer productos_práctica -->
   <script src="js/supabaseClient.js"></script>
   <script src="js/galeria.js"></script>
+  <script src="js/perfil-galeria.js"></script>
 </body>
 </html>
