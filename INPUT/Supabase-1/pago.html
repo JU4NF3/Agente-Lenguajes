@@ -221,7 +221,50 @@
       letter-spacing: normal;
       transition: border-color 0.2s;
     }
-    input::placeholder { color: #9a9a9a; }
+    /* el textarea de observación se ve igual que los inputs */
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--input-borde);
+      border-radius: 12px;
+      background: var(--input-fondo);
+      color: var(--input-texto);
+      font: inherit;
+      font-family: var(--sans);
+      font-size: 0.95rem;
+      text-transform: none;
+      letter-spacing: normal;
+      resize: vertical;
+    }
+    textarea:focus { outline: 2px solid var(--texto); outline-offset: -1px; }
+
+    /* títulos "Entrega" y "Pago" dentro del formulario */
+    .form-seccion {
+      margin: 8px 0 0;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    /* casilla en fila (los demás labels son en columna) */
+    .check-envio {
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--texto);
+    }
+    .check-envio input { width: 18px; height: 18px; accent-color: var(--texto); }
+
+    .mensaje-pago {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: #dc2626;
+    }
+    .mensaje-pago:empty { display: none; }
+
+    input::placeholder, textarea::placeholder { color: #9a9a9a; }
     input:hover { border-color: #0a0a0a; }
     input:focus { outline: 2px solid var(--texto); outline-offset: -1px; }
 
@@ -435,7 +478,7 @@
     <section>
       <p class="rotulo" style="color:var(--suave)">Checkout</p>
       <h1>Datos de pago</h1>
-      <p class="sub">Completa los datos de tu tarjeta para confirmar el pedido.</p>
+      <p class="sub">Revisa tus datos de entrega y completa el pago para confirmar el pedido.</p>
 
       <div class="demo-aviso">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -447,6 +490,30 @@
 
       <!-- novalidate: validamos nosotros con mensajes propios -->
       <form id="form-pago" novalidate>
+        <!-- DATOS DE ENTREGA: pago.js los llena con "Mis datos" del cliente -->
+        <h2 class="form-seccion">Entrega</h2>
+
+        <label class="check-envio">
+          <input id="envio" type="checkbox">
+          Envío a domicilio
+        </label>
+
+        <label>Dirección
+          <input id="direccion" type="text" autocomplete="street-address" placeholder="Calle, número, barrio">
+          <span class="error-campo" id="error-direccion"></span>
+        </label>
+
+        <label>Teléfono
+          <input id="telefono" type="tel" autocomplete="tel" placeholder="300 000 0000">
+          <span class="error-campo" id="error-telefono"></span>
+        </label>
+
+        <label>Observación
+          <textarea id="observacion" rows="2" placeholder="Opcional (ej. portería, horario)"></textarea>
+        </label>
+
+        <h2 class="form-seccion">Pago</h2>
+
         <label>Nombre en la tarjeta
           <input id="nombre" type="text" autocomplete="cc-name" placeholder="Como aparece en la tarjeta" required>
           <span class="error-campo" id="error-nombre"></span>
@@ -468,6 +535,9 @@
                    placeholder="123" maxlength="4">
           </label>
         </div>
+
+        <!-- errores que devuelve la base (ej. 'Stock insuficiente...') -->
+        <p class="mensaje-pago" id="mensaje-pago" role="status"></p>
 
         <button type="submit" id="btn-pagar-ahora">Pagar <span id="btn-monto"></span></button>
       </form>

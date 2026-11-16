@@ -406,6 +406,7 @@
     <a href="galeria.html" class="logo">Pedido</a>
     <nav class="nav">
       <a href="galeria.html">Tienda</a>
+      <a href="mis-pedidos.html">Mis pedidos</a>
       <a href="cliente.html">Mi cuenta</a>
     </nav>
     <div class="barra-acciones">
@@ -418,8 +419,8 @@
     <!-- ENCABEZADO: el título lo pone estado-pedido.js según el estado -->
     <div class="encabezado">
       <p class="rotulo" id="pedido-numero">Pedido</p>
-      <h1 id="titulo-estado">Tu pedido está en camino</h1>
-      <p class="sub" id="subtitulo-estado">Vamos en camino. Te avisaremos cuando llegue.</p>
+      <h1 id="titulo-estado">Cargando tu pedido…</h1>
+      <p class="sub" id="subtitulo-estado"></p>
     </div>
 
     <!-- TARJETA DE SEGUIMIENTO -->
@@ -480,9 +481,11 @@
       <div class="bloque">
         <h2>Datos del envío</h2>
         <div id="datos-comprador"></div>
-        <!-- TODO Supabase: la dirección real saldrá de la tabla del cliente -->
-        <p class="texto-pendiente">Dirección de entrega <span class="pendiente">Pronto</span><br>
-          Se mostrará aquí cuando conectemos tus datos de Supabase.</p>
+        <!-- Lo llena estado-pedido.js con el pedido (pedidos) y el cliente
+             (cliente_práctica) leídos de Supabase -->
+        <div id="datos-entrega">
+          <p class="texto-pendiente">Cargando datos de entrega…</p>
+        </div>
       </div>
 
       <div class="bloque">

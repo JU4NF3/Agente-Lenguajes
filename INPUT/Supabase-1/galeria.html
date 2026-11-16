@@ -804,6 +804,57 @@
 
     .btn-agregar[disabled] { opacity: 0.4; cursor: not-allowed; }
 
+    /* Agregar desde la tarjeta: − [n] + y botón compacto */
+    .tarjeta-compra {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tc-cantidad {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--linea-suave);
+      border-radius: 999px;
+    }
+
+    .tc-cantidad button {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      background: none;
+      color: var(--texto);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .tc-cantidad button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+    .tc-contador {
+      min-width: 20px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    .tarjeta-compra .btn-agregar {
+      flex: 1;
+      margin-top: 0;
+      padding: 8px 12px;
+      font-size: 0.68rem;
+    }
+
+    /* feedback de 1,2 s: verde si salió bien, rojo si falló */
+    .btn-agregar.ok,
+    .btn-agregar.ok:not([disabled]):hover {
+      background: #15803d; border-color: #15803d; color: #ffffff; transform: none;
+    }
+    .btn-agregar.error,
+    .btn-agregar.error:not([disabled]):hover {
+      background: #b91c1c; border-color: #b91c1c; color: #ffffff; transform: none;
+    }
+
     .ficha-cerrar {
       position: absolute;
       top: 16px;
@@ -1064,6 +1115,17 @@
 
     .drawer-pie .btn-agregar[disabled] { opacity: 0.4; cursor: not-allowed; }
 
+
+    /* aviso dentro del carrito ("inicia sesión", "carrito vacío"...) */
+    .mensaje-carrito {
+      margin: 0 0 12px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--rojo);
+    }
+    .mensaje-carrito:empty { display: none; }
+
+
     /* ======================= AVISO FLOTANTE ====================== */
     #aviso {
       position: fixed;
@@ -1172,6 +1234,7 @@
       transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
     #menu-perfil button:hover { background: var(--texto); color: var(--fondo); border-color: var(--texto); }
+    #btn-mis-pedidos,
     #btn-config { margin-bottom: 8px; }
     #menu-perfil #btn-menu-login { background: var(--boton-fondo); color: var(--boton-texto); border-color: var(--boton-borde); }
     #menu-perfil #btn-menu-login:hover { background: var(--boton-hover-fondo); color: var(--boton-hover-texto); }
@@ -1298,6 +1361,7 @@
           <div class="menu-con-sesion">
             <p class="rotulo">Sesión iniciada como</p>
             <p id="perfil-correo"></p>
+            <button id="btn-mis-pedidos" type="button">Mis pedidos</button>
             <button id="btn-config" type="button">Configuración</button>
             <button id="btn-logout" type="button">Cerrar sesión</button>
           </div>
@@ -1392,9 +1456,12 @@
           <span>Total</span>
           <span id="carrito-total">$0</span>
         </div>
+        <!-- avisos como "inicia sesión" (se oculta solo cuando está vacío) -->
+        <p id="mensaje-carrito" class="mensaje-carrito" role="status"></p>
+
         <div class="drawer-botones">
           <button type="button" id="btn-vaciar" class="btn-secundario">Vaciar</button>
-          <button type="button" id="btn-pagar" class="btn-agregar">Pagar</button>
+          <button type="button" id="btn-checkout" class="btn-agregar">Continuar</button>
         </div>
       </footer>
     </div>

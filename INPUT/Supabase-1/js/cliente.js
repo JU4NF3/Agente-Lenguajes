@@ -185,6 +185,11 @@ function pintarOpcionesConfig() {
 
 pintarOpcionesConfig();
 
+// "Mis pedidos" en el menú del perfil → a la lista de pedidos del cliente
+document.getElementById('btn-mis-pedidos').addEventListener('click', () => {
+  window.location.href = 'mis-pedidos.html';
+});
+
 // "Configuración" en el menú del perfil → cierra el menú y abre la ventana
 document.getElementById('btn-config').addEventListener('click', () => {
   cerrarMenuPerfil();

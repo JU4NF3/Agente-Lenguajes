@@ -1,11 +1,16 @@
 // ============================================================
 //  ESTADO DEL PEDIDO (seguimiento estilo Mercado Libre)
-//  Lee el pedido PAGADO de localStorage ('pedido-actual') y pinta:
-//   - la línea de progreso con el camioncito en el paso actual
-//   - los datos del comprador y el detalle de productos
+//  Pinta la línea de progreso con el camioncito, los datos de entrega
+//  y el detalle de productos de UN pedido, leído de Supabase.
 //
-//  TODO Supabase: el estado (0..3) y la dirección de envío saldrán de
-//  una tabla pedidos_práctica en vez de estar fijos aquí.
+//  ¿Qué pedido? El de la URL (estado-pedido.html?id=12, desde Mis
+//  pedidos) o, si no hay, el último que se pagó en este navegador (la
+//  "foto" de localStorage que deja pago.js).
+//
+//  La base guarda casi todo (estado, entrega, productos, precios, total).
+//  Lo único que NO guarda es el nombre de la tarjeta y sus últimos 4
+//  dígitos: esos solo se ven si la foto local es de ESTE mismo pedido.
+//  El RLS solo deja leer los pedidos y el perfil del cliente con sesión.
 // ============================================================
 
 const PEDIDO_CLAVE = 'pedido-actual';
@@ -19,15 +24,20 @@ const PASOS = [
   { titulo: '¡Pedido entregado!',         sub: 'Tu pedido fue entregado. ¡Gracias por tu compra!' },
 ];
 
-// PASO ACTUAL (demo): 2 = "En camino". Cuando conectemos Supabase, este
-// número vendrá de la columna 'estado' del pedido.
-const PASO_ACTUAL = 2;
+// La columna 'estado' de pedidos → en qué paso de la línea va el camión.
+// 'confirmado' = ya pagó, así que "Pago confirmado" queda Listo y el paso
+// activo es "Preparando". El admin cambia el estado y aquí avanza solo.
+const PASO_POR_ESTADO = {
+  confirmado: 1,
+  enviado: 2,
+  entregado: 3,
+};
 
 function formatoPesos(valor) {
   return '$' + Math.round(valor).toLocaleString('es-CO');
 }
 
-function leerPedido() {
+function leerFoto() {
   try {
     return JSON.parse(localStorage.getItem(PEDIDO_CLAVE));
   } catch {
@@ -35,24 +45,140 @@ function leerPedido() {
   }
 }
 
-const pedido = leerPedido();
+// ?id=12 → 12. Number('') y Number(null) dan 0, y 0 || null → null.
+const idURL = Number(new URLSearchParams(window.location.search).get('id')) || null;
+const foto = leerFoto();
 
-// ---- Sin pedido pagado: mostrar la pantalla "No tienes un pedido activo" ----
-if (!pedido || !pedido.pagado || !pedido.items || pedido.items.length === 0) {
-  document.body.classList.add('sin-pedido');
-} else {
-  pintarSeguimiento();
+// Lo que se pinta: { id, items: [{ nombre, cantidad, precio }], total,
+// fecha, comprador, tarjeta_final }. Lo llena iniciar().
+let pedido = null;
+
+iniciar();
+
+// ---- 0) ARRANQUE ----
+async function iniciar() {
+  const idPedido = idURL ?? foto?.id ?? null;
+  const { data: sesion } = await db.auth.getUser();
+
+  // Sin sesión no se puede leer la base (RLS): solo queda la foto local
+  if (!sesion.user) {
+    if (!idURL && foto?.pagado && foto.items?.length) {
+      pedido = foto;
+      pintarSeguimiento(PASO_POR_ESTADO.confirmado);
+      pintarDetalle();
+      mensajeEntrega('Inicia sesión para ver los datos de entrega.');
+    } else {
+      sinPedido('Inicia sesión para ver tus pedidos', 'Entra a Mi cuenta y vuelve a abrir este pedido.');
+    }
+    return;
+  }
+
+  if (!idPedido) {
+    sinPedido();
+    return;
+  }
+
+  const datos = await leerPedidoDeBase(idPedido, sesion.user.id);
+  if (!datos) {
+    sinPedido('No encontramos este pedido', 'Puede que no sea de tu cuenta o que todavía sea un carrito.');
+    return;
+  }
+
+  // nombre de la tarjeta y últimos 4: solo si la foto es de este pedido
+  const fotoDeEste = foto?.pagado && foto.id === idPedido ? foto : null;
+  pedido = {
+    ...datos.vista,
+    comprador: fotoDeEste?.comprador,
+    tarjeta_final: fotoDeEste?.tarjeta_final,
+  };
+
+  // El camión va donde diga la base. ?? 1: un estado que no está en el
+  // mapa (no debería pasar: el CHECK de la tabla solo deja los conocidos)
+  pintarSeguimiento(PASO_POR_ESTADO[datos.fila.estado] ?? 1, datos.fila.estado === 'cancelado');
   pintarDetalle();
+  pintarEntrega(datos.fila, datos.cliente, sesion.user.email);
+}
+
+// Pantalla "No tienes un pedido activo" (con otro texto si hace falta)
+function sinPedido(titulo, texto) {
+  if (titulo) document.querySelector('#sin-pedido h1').textContent = titulo;
+  if (texto) document.querySelector('#sin-pedido p').textContent = texto;
+  document.body.classList.add('sin-pedido');
+}
+
+// ---- 0b) LEER EL PEDIDO DE SUPABASE ----
+// Cuatro lecturas que no dependen entre sí → a la vez con Promise.all.
+// Devuelve null si el pedido no existe, no es de esta cuenta (el RLS lo
+// esconde y maybeSingle da null) o sigue siendo un carrito.
+async function leerPedidoDeBase(idPedido, idCliente) {
+  const [resPedido, resDetalles, resTotal, resCliente] = await Promise.all([
+    db.from('pedidos')
+      .select('id, estado, envio, direccion, telefono, observacion, created_at, confirmado_en')
+      .eq('id', idPedido)
+      .maybeSingle(),
+    db.from('detalles_pedidos')
+      .select('producto_id, cantidad, precio_unitario')
+      .eq('pedido_id', idPedido),
+    db.from('pedidos_con_total')
+      .select('total')
+      .eq('id', idPedido)
+      .maybeSingle(),
+    db.from('cliente_práctica')
+      .select('nombre, correo, telefono, direccion')
+      .eq('id', idCliente)
+      .maybeSingle(),
+  ]);
+
+  [resPedido, resDetalles, resTotal, resCliente].forEach((r) => {
+    if (r.error) console.log('Error al leer el pedido:', r.error);
+  });
+
+  const fila = resPedido.data;
+  if (!fila || fila.estado === 'carrito') return null;
+
+  // Los nombres de los productos están en otra tabla: una sola consulta
+  // con .in() para todos, y un objeto { id: nombre } para buscarlos.
+  const detalles = resDetalles.data ?? [];
+  const nombres = {};
+  if (detalles.length > 0) {
+    const { data: productos, error } = await db
+      .from('productos_práctica')
+      .select('id, nombre')
+      .in('id', detalles.map((d) => d.producto_id));
+    if (error) console.log('Error al leer los productos:', error);
+    (productos ?? []).forEach((p) => { nombres[p.id] = p.nombre; });
+  }
+
+  return {
+    fila,
+    cliente: resCliente.data,
+    vista: {
+      id: fila.id,
+      // precio_unitario lo fijó confirmar_pedido: es lo que se cobró
+      items: detalles.map((d) => ({
+        nombre: nombres[d.producto_id] ?? `Producto #${d.producto_id}`,
+        cantidad: d.cantidad,
+        precio: d.precio_unitario ?? 0,
+      })),
+      total: resTotal.data?.total ?? 0,
+      fecha: fila.confirmado_en ?? fila.created_at,
+    },
+  };
 }
 
 // ---- 1) LÍNEA DE PROGRESO + CAMIÓN ----
-function pintarSeguimiento() {
+// paso: 0..3 (posición en PASOS). cancelado: el pedido se anuló.
+function pintarSeguimiento(paso, cancelado = false) {
   // Título y subtítulo según el paso actual.
-  document.getElementById('titulo-estado').textContent = PASOS[PASO_ACTUAL].titulo;
-  document.getElementById('subtitulo-estado').textContent = PASOS[PASO_ACTUAL].sub;
+  document.getElementById('titulo-estado').textContent =
+    cancelado ? 'Pedido cancelado' : PASOS[paso].titulo;
+  document.getElementById('subtitulo-estado').textContent =
+    cancelado ? 'Este pedido fue cancelado. Si tienes dudas, escríbenos.' : PASOS[paso].sub;
 
-  // Número de pedido corto, a partir de la fecha (demo).
-  const num = new Date(pedido.pagado_fecha || pedido.fecha || Date.now()).getTime().toString().slice(-6);
+  // Número de pedido: el id real de la tabla pedidos (fotos viejas sin id
+  // usan un número corto sacado de la fecha, como antes).
+  const num = pedido.id
+    ?? new Date(pedido.pagado_fecha || pedido.fecha || Date.now()).getTime().toString().slice(-6);
   document.getElementById('pedido-numero').textContent = 'Pedido #' + num;
 
   // Marcar cada paso como completado / activo / pendiente.
@@ -60,10 +186,12 @@ function pintarSeguimiento() {
     const i = Number(li.dataset.paso);
     li.classList.remove('completado', 'activo');
     const estado = li.querySelector('.paso-estado');
-    if (i < PASO_ACTUAL) {
+    if (cancelado) {
+      estado.textContent = '—'; // cancelado: ningún paso activo
+    } else if (i < paso) {
       li.classList.add('completado');
       estado.textContent = 'Listo';
-    } else if (i === PASO_ACTUAL) {
+    } else if (i === paso) {
       li.classList.add('activo');
       estado.textContent = 'Ahora';
     } else {
@@ -78,22 +206,23 @@ function pintarSeguimiento() {
   requestAnimationFrame(() => {
     // doble rAF: asegura que el valor inicial (0) ya se pintó antes de cambiarlo
     requestAnimationFrame(() => {
-      progreso.style.setProperty('--activo', String(PASO_ACTUAL));
+      progreso.style.setProperty('--activo', cancelado ? '0' : String(paso));
     });
   });
 }
 
-// ---- 2) DATOS DEL COMPRADOR + PRODUCTOS ----
+// ---- 2) DATOS DEL PAGO + PRODUCTOS ----
 function pintarDetalle() {
   const fecha = new Date(pedido.pagado_fecha || pedido.fecha || Date.now());
   const fechaTexto = fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Datos del comprador (lo que escribió en el pago).
-  document.getElementById('datos-comprador').innerHTML = `
-    <div class="dato"><span class="dk">Nombre</span><span class="dv">${pedido.comprador || '—'}</span></div>
-    <div class="dato"><span class="dk">Tarjeta</span><span class="dv">•••• ${pedido.tarjeta_final || '0000'}</span></div>
-    <div class="dato"><span class="dk">Fecha</span><span class="dv">${fechaTexto}</span></div>
-  `;
+  // Nombre y tarjeta solo existen si se pagó en este navegador (no se
+  // guardan en la base); la fecha siempre.
+  const filas = [];
+  if (pedido.comprador) filas.push(filaDato('Nombre', pedido.comprador));
+  if (pedido.tarjeta_final) filas.push(filaDato('Tarjeta', `•••• ${pedido.tarjeta_final}`));
+  filas.push(filaDato('Fecha', fechaTexto));
+  document.getElementById('datos-comprador').replaceChildren(...filas);
 
   // Productos del pedido.
   document.getElementById('detalle-items').innerHTML = pedido.items.map((it) => `
@@ -104,6 +233,46 @@ function pintarDetalle() {
   `).join('');
 
   document.getElementById('detalle-total').textContent = formatoPesos(pedido.total);
+}
+
+// ---- 2b) DATOS DE ENTREGA ----
+// Una fila "Etiqueta ...... valor" con las clases .dato/.dk/.dv. Con
+// textContent (no innerHTML): la dirección y el nombre los escribió el
+// cliente, y así nada de lo que escriba se interpreta como HTML.
+function filaDato(etiqueta, valor) {
+  const fila = document.createElement('div');
+  fila.className = 'dato';
+  const dk = document.createElement('span');
+  dk.className = 'dk';
+  dk.textContent = etiqueta;
+  const dv = document.createElement('span');
+  dv.className = 'dv';
+  dv.textContent = valor || '—';
+  fila.append(dk, dv);
+  return fila;
+}
+
+function mensajeEntrega(texto) {
+  const p = document.createElement('p');
+  p.className = 'texto-pendiente';
+  p.textContent = texto;
+  document.getElementById('datos-entrega').replaceChildren(p);
+}
+
+// p: fila de pedidos (lo que escribió al pagar). c: su fila de
+// cliente_práctica ("Mis datos"), que sirve de respaldo.
+function pintarEntrega(p, c, correoSesion) {
+  const caja = document.getElementById('datos-entrega');
+
+  caja.replaceChildren(
+    filaDato('Cliente', c?.nombre),
+    filaDato('Correo', c?.correo ?? correoSesion),
+    filaDato('Entrega', p.envio ? 'Envío a domicilio' : 'Recoger en tienda'),
+    filaDato('Dirección', p.direccion ?? c?.direccion),
+    filaDato('Teléfono', p.telefono ?? c?.telefono),
+  );
+
+  if (p.observacion) caja.append(filaDato('Observación', p.observacion));
 }
 
 // ---- 3) TEMA CLARO / OSCURO ----

@@ -62,6 +62,7 @@ document.getElementById('btn-menu-login').addEventListener('click', () => {
 // ---- 4) CERRAR SESIÓN (se queda en la tienda, ahora como invitado) ----
 document.getElementById('btn-logout').addEventListener('click', async () => {
   await db.auth.signOut();
+  vaciarCarritoLocal(); // el carrito era de esa cuenta: no mostrárselo al invitado
   cerrarMenuPerfil();
   await revisarSesion();
   avisar('Sesión cerrada');
@@ -90,6 +91,11 @@ function pintarOpcionesConfig() {
 }
 
 pintarOpcionesConfig();
+
+// "Mis pedidos" → a la lista de pedidos del cliente
+document.getElementById('btn-mis-pedidos').addEventListener('click', () => {
+  window.location.href = 'mis-pedidos.html';
+});
 
 document.getElementById('btn-config').addEventListener('click', () => {
   cerrarMenuPerfil();
