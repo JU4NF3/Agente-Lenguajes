@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elion · Ropa con propósito</title>
+  <meta name="description" content="Elion: ropa streetwear cristiana. Hoodies, camisetas y gorras con mensajes de fe.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="assets/elion-favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<!-- page--home: el header es transparente sobre el video (layout.js).
+     El header, los menús, el carrito y el footer los inserta layout.js. -->
+<body class="page--home">
+
+  <main id="main">
+
+    <!-- ============ HERO CON VIDEO ============
+         muted + playsinline: sin eso, los celulares no reproducen el
+         video solo. poster: la imagen que se ve mientras carga. -->
+    <section class="hero">
+      <video class="hero__video" autoplay muted loop playsinline poster="assets/hero-poster.jpg" aria-hidden="true">
+        <source src="assets/hero.mp4" type="video/mp4">
+      </video>
+      <div class="hero__overlay"></div>
+
+      <div class="hero__content">
+        <p class="eyebrow">Nueva colección · Walk by Faith</p>
+        <h1 class="hero__title">Vestidos<br>de fe</h1>
+        <p class="hero__text">Ropa hecha para llevar el mensaje a la calle.</p>
+        <a class="btn btn--light" href="#new">Comprar ahora</a>
+      </div>
+
+      <a class="hero__scroll" href="#new" aria-label="Bajar a la colección">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+      </a>
+    </section>
+
+    <!-- ============ NOVEDADES ============
+         home.js llena #grid-new con las tarjetas de PRODUCTS -->
+    <section class="section" id="new" aria-labelledby="new-title">
+      <div class="section__head">
+        <h2 class="section__title" id="new-title">Novedades</h2>
+        <a class="link-arrow" href="#new">Ver todo</a>
+      </div>
+      <div class="product-grid" id="grid-new"></div>
+    </section>
+
+    <!-- ============ FRASE / MANIFIESTO ============ -->
+    <section class="statement" aria-label="Nuestro mensaje">
+      <p class="statement__text">No es solo ropa.<br>Es lo que crees.</p>
+      <p class="statement__verse">“Por fe andamos, no por vista.” — 2 Corintios 5:7</p>
+    </section>
+
+    <!-- ============ MÁS VENDIDOS ============ -->
+    <section class="section" id="best" aria-labelledby="best-title">
+      <div class="section__head">
+        <h2 class="section__title" id="best-title">Más vendidos</h2>
+        <a class="link-arrow" href="#best">Ver todo</a>
+      </div>
+      <div class="product-grid" id="grid-best"></div>
+    </section>
+
+  </main>
+
+  <!-- ============ POP-UP DE DESCUENTO ============
+       Aparece a los 5 s (home.js), solo si no se cerró antes. -->
+  <dialog class="popup" id="discount-popup" aria-labelledby="popup-title">
+    <div class="popup__media" aria-hidden="true">
+      <img src="assets/hero-poster.jpg" alt="">
+      <span class="popup__badge">10% OFF</span>
+    </div>
+
+    <div class="popup__body">
+      <button class="icon-btn popup__close" id="popup-close" type="button" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+
+      <!-- paso 1: el formulario -->
+      <div id="popup-step-form">
+        <p class="eyebrow eyebrow--dark">Bienvenido a la familia</p>
+        <h2 class="popup__title" id="popup-title">10% OFF<br>en tu primera compra</h2>
+        <p class="popup__text">Regístrate con tu correo y recibe tu código de descuento, además de acceso anticipado a cada drop.</p>
+
+        <form class="popup__form" id="popup-form" novalidate>
+          <label class="visually-hidden" for="popup-email">Correo electrónico</label>
+          <input id="popup-email" type="email" autofocus placeholder="Tu correo electrónico" autocomplete="email" required>
+          <p class="form-message" id="popup-message" role="status"></p>
+          <button class="btn btn--dark btn--block" type="submit">Obtener mi 10%</button>
+        </form>
+
+        <button class="popup__dismiss" id="popup-dismiss" type="button">No, gracias</button>
+      </div>
+
+      <!-- paso 2: el código (oculto hasta registrarse) -->
+      <div id="popup-step-done" hidden>
+        <p class="eyebrow eyebrow--dark">¡Ya eres parte!</p>
+        <h2 class="popup__title">Tu código</h2>
+        <p class="popup__code" id="popup-code">FE10</p>
+        <p class="popup__text">Ya quedó guardado: se aplica solo al finalizar tu compra.</p>
+        <button class="btn btn--dark btn--block" id="popup-shop" type="button">Empezar a comprar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- el orden importa: cada archivo usa funciones de los anteriores -->
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

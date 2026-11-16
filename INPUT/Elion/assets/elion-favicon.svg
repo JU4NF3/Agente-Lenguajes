@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="447.5 175 640 640">
+  <!-- Isotipo de Elion (cruz "Luz") calcado del PNG original, en marfil sobre negro -->
+  <rect x="447.5" y="175" width="640" height="640" rx="120" fill="#0a0a0a"/>
+  <g fill="#f5f1e8">
+    <path d="M805 215 L803 400 C803 450 770 493 715 493 L460 493 C600 470 700 455 740 420 C770 390 790 300 805 215 Z"/>
+    <path d="M1075 478 L845 478 C790 478 760 520 760 570 L760 775 C775 690 800 600 830 555 C860 520 960 500 1075 478 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- product.js cambia el título por el nombre del producto -->
+  <title>Producto · Elion</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="assets/elion-favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- producto.html?id=3 → product.js pinta el producto 3 aquí adentro -->
+  <main id="main" class="page">
+    <div id="product"></div>
+
+    <section class="section section--tight" id="related" aria-labelledby="related-title" hidden>
+      <div class="section__head">
+        <h2 class="section__title" id="related-title">También te puede gustar</h2>
+      </div>
+      <div class="product-grid" id="grid-related"></div>
+    </section>
+  </main>
+
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/product.js"></script>
+</body>
+</html>

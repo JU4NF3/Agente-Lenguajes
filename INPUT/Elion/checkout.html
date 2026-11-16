@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finalizar compra · Elion</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="assets/elion-favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <main id="main" class="page">
+    <h1 class="page-title">Finalizar compra</h1>
+
+    <!-- carrito vacío: checkout.js muestra esto y esconde el resto -->
+    <div class="not-found" id="checkout-empty" hidden>
+      <p>Tu carrito está vacío.</p>
+      <a class="btn btn--dark" href="index.html#new">Ver novedades</a>
+    </div>
+
+    <div class="checkout" id="checkout">
+
+      <!-- ===== FORMULARIO EN 3 PASOS =====
+           Cada <section class="step"> tiene una cabecera (número,
+           título y resumen cuando ya se completó) y un cuerpo que solo
+           se ve en el paso activo. novalidate: validamos nosotros. -->
+      <form class="checkout__form" id="checkout-form" novalidate>
+
+        <!-- PASO 1 -->
+        <section class="step" data-step="1">
+          <header class="step__head">
+            <span class="step__num"><span>1</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></span>
+            <h2 class="step__title">Contacto y dirección</h2>
+            <p class="step__summary" id="summary-1"></p>
+            <button class="link-btn step__edit" type="button" data-edit="1">Editar</button>
+          </header>
+
+          <div class="step__body">
+            <div class="fields">
+              <div class="field field--full">
+                <label for="email">Correo electrónico</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+                <p class="field__error" data-error-for="email"></p>
+              </div>
+              <div class="field field--full">
+                <label for="fullName">Nombre completo</label>
+                <input id="fullName" name="fullName" type="text" autocomplete="name">
+                <p class="field__error" data-error-for="fullName"></p>
+              </div>
+              <div class="field">
+                <label for="docNumber">Cédula</label>
+                <input id="docNumber" name="docNumber" type="text" inputmode="numeric" maxlength="10">
+                <p class="field__error" data-error-for="docNumber"></p>
+              </div>
+              <div class="field">
+                <label for="phone">Celular</label>
+                <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="3001234567">
+                <p class="field__error" data-error-for="phone"></p>
+              </div>
+              <div class="field">
+                <label for="department">Departamento</label>
+                <!-- checkout.js llena las opciones -->
+                <select id="department" name="department" autocomplete="address-level1"></select>
+                <p class="field__error" data-error-for="department"></p>
+              </div>
+              <div class="field">
+                <label for="city">Ciudad o municipio</label>
+                <input id="city" name="city" type="text" autocomplete="address-level2">
+                <p class="field__error" data-error-for="city"></p>
+              </div>
+              <div class="field field--full">
+                <label for="address">Dirección</label>
+                <input id="address" name="address" type="text" autocomplete="street-address" placeholder="Calle 10 # 20-30">
+                <p class="field__error" data-error-for="address"></p>
+              </div>
+              <div class="field field--full">
+                <label for="addressNotes">Apartamento, barrio o indicaciones <span class="optional">(opcional)</span></label>
+                <input id="addressNotes" name="addressNotes" type="text">
+              </div>
+            </div>
+            <button class="btn btn--dark step__next" type="button" data-next="2">Continuar al envío</button>
+          </div>
+        </section>
+
+        <!-- PASO 2 -->
+        <section class="step" data-step="2">
+          <header class="step__head">
+            <span class="step__num"><span>2</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></span>
+            <h2 class="step__title">Método de envío</h2>
+            <p class="step__summary" id="summary-2"></p>
+            <button class="link-btn step__edit" type="button" data-edit="2">Editar</button>
+          </header>
+
+          <div class="step__body">
+            <!-- checkout.js pinta las opciones con precio y fechas -->
+            <fieldset class="options" id="shipping-options">
+              <legend class="visually-hidden">Método de envío</legend>
+            </fieldset>
+            <button class="btn btn--dark step__next" type="button" data-next="3">Continuar al pago</button>
+          </div>
+        </section>
+
+        <!-- PASO 3 -->
+        <section class="step" data-step="3">
+          <header class="step__head">
+            <span class="step__num"><span>3</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></span>
+            <h2 class="step__title">Pago</h2>
+          </header>
+
+          <div class="step__body">
+            <p class="demo-note">Demostración: no se hace ningún cobro real ni se guardan datos de tarjetas.</p>
+
+            <fieldset class="options">
+              <legend class="visually-hidden">Método de pago</legend>
+
+              <label class="option">
+                <input type="radio" name="payMethod" value="card" checked>
+                <span class="option__text"><strong>Tarjeta de crédito o débito</strong><small>Visa, Mastercard, American Express</small></span>
+              </label>
+              <div class="option__panel" data-panel="card">
+                <div class="fields">
+                  <div class="field field--full">
+                    <label for="cardNumber">Número de la tarjeta</label>
+                    <input id="cardNumber" name="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="0000 0000 0000 0000">
+                    <p class="field__error" data-error-for="cardNumber"></p>
+                  </div>
+                  <div class="field field--full">
+                    <label for="cardName">Nombre en la tarjeta</label>
+                    <input id="cardName" name="cardName" type="text" autocomplete="cc-name">
+                    <p class="field__error" data-error-for="cardName"></p>
+                  </div>
+                  <div class="field">
+                    <label for="cardExp">Vencimiento</label>
+                    <input id="cardExp" name="cardExp" type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/AA">
+                    <p class="field__error" data-error-for="cardExp"></p>
+                  </div>
+                  <div class="field">
+                    <label for="cardCvv">CVV</label>
+                    <input id="cardCvv" name="cardCvv" type="text" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123">
+                    <p class="field__error" data-error-for="cardCvv"></p>
+                  </div>
+                </div>
+              </div>
+
+              <label class="option">
+                <input type="radio" name="payMethod" value="pse">
+                <span class="option__text"><strong>PSE</strong><small>Débito desde tu cuenta bancaria</small></span>
+              </label>
+              <div class="option__panel" data-panel="pse" hidden>
+                <div class="fields">
+                  <div class="field">
+                    <label for="pseBank">Banco</label>
+                    <select id="pseBank" name="pseBank">
+                      <option value="">Elige tu banco</option>
+                      <option>Bancolombia</option>
+                      <option>Banco de Bogotá</option>
+                      <option>Davivienda</option>
+                      <option>BBVA</option>
+                      <option>Banco de Occidente</option>
+                      <option>Banco Popular</option>
+                      <option>Nequi</option>
+                    </select>
+                    <p class="field__error" data-error-for="pseBank"></p>
+                  </div>
+                  <div class="field">
+                    <label for="pseType">Tipo de persona</label>
+                    <select id="pseType" name="pseType">
+                      <option>Natural</option>
+                      <option>Jurídica</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <label class="option">
+                <input type="radio" name="payMethod" value="cod">
+                <span class="option__text"><strong>Contraentrega</strong><small>Pagas en efectivo cuando recibes</small></span>
+              </label>
+              <div class="option__panel" data-panel="cod" hidden>
+                <p class="option__info">Ten el valor exacto listo: el mensajero no siempre tiene cambio.</p>
+              </div>
+            </fieldset>
+
+            <button class="btn btn--dark btn--block step__pay" type="submit" id="pay-button">Pagar</button>
+          </div>
+        </section>
+      </form>
+
+      <!-- ===== RESUMEN DEL PEDIDO =====
+           <details> abierto: en celular se puede plegar para que no
+           ocupe toda la pantalla (checkout.js lo pliega al inicio) -->
+      <aside class="summary" aria-label="Resumen del pedido">
+        <details class="summary__toggle" id="summary-details" open>
+          <summary>Resumen del pedido <strong id="summary-total-top"></strong></summary>
+
+          <div class="summary__lines" id="summary-lines"></div>
+
+          <form class="coupon" id="coupon-form" novalidate>
+            <label class="visually-hidden" for="coupon">Código de descuento</label>
+            <input id="coupon" type="text" placeholder="Código de descuento" autocomplete="off">
+            <button class="btn btn--outline" type="submit">Aplicar</button>
+          </form>
+          <p class="form-message" id="coupon-message" role="status"></p>
+
+          <dl class="summary__totals" id="summary-totals"></dl>
+        </details>
+      </aside>
+    </div>
+  </main>
+
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/checkout.js"></script>
+</body>
+</html>
