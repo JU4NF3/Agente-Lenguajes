@@ -39,6 +39,7 @@
 
       --tarjeta-foto: #f4f4f4;
       --verde: #16a34a;
+      --rojo: #dc2626;
     }
 
     :root[data-tema="oscuro"] {
@@ -56,6 +57,7 @@
       --boton-hover-texto: #0a0a0a;
 
       --tarjeta-foto: #161616;
+      --rojo: #f87171;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -387,6 +389,63 @@
     }
     .acciones a:hover { background: var(--texto); color: var(--fondo); transform: translateY(-2px); }
 
+    /* motivo de la cancelación: caja de borde rojo debajo del subtítulo */
+    .motivo-cancelacion {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 520px;
+      margin: 16px 0 0;
+      padding: 14px 18px;
+      border: 1px solid var(--rojo);
+      border-radius: 14px;
+      color: var(--texto);
+    }
+    .motivo-cancelacion[hidden] { display: none; }
+    .motivo-rotulo {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--rojo);
+    }
+    #motivo-texto { font-size: 1rem; font-weight: 500; }
+
+    /* "Seguir comprando" y "Cancelar pedido" en la misma fila */
+    .acciones-pedido { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+    /* mismo tamaño que "Seguir comprando", pero en rojo */
+    .btn-cancelar {
+      padding: 13px 24px;
+      border: 1px solid var(--rojo);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--rojo);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-cancelar[hidden] { display: none; }
+    .btn-cancelar:hover:not([disabled]) { background: var(--rojo); color: var(--fondo); transform: translateY(-2px); }
+    .btn-cancelar[disabled] { opacity: 0.5; cursor: wait; }
+
+    /* aviso de éxito o error al cancelar (oculto mientras está vacío) */
+    .mensaje-pedido {
+      margin: 16px 0 0;
+      padding: 12px 16px;
+      border: 1px solid currentColor;
+      border-radius: 12px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+    }
+    .mensaje-pedido:empty { display: none; }
+    .mensaje-pedido.ok    { color: var(--verde); }
+    .mensaje-pedido.error { color: var(--rojo); }
+
     /* ===== SIN PEDIDO ===== */
     #sin-pedido { display: none; }
     body.sin-pedido .envoltura > *:not(#sin-pedido) { display: none; }
@@ -421,6 +480,11 @@
       <p class="rotulo" id="pedido-numero">Pedido</p>
       <h1 id="titulo-estado">Cargando tu pedido…</h1>
       <p class="sub" id="subtitulo-estado"></p>
+      <!-- solo en pedidos cancelados: el motivo que eligió la tienda -->
+      <p class="motivo-cancelacion" id="motivo-cancelacion" hidden>
+        <span class="motivo-rotulo">Motivo de la cancelación</span>
+        <span id="motivo-texto"></span>
+      </p>
     </div>
 
     <!-- TARJETA DE SEGUIMIENTO -->
@@ -498,9 +562,14 @@
       </div>
     </div>
 
-    <div class="acciones">
-      <a href="galeria.html">← Seguir comprando</a>
+    <!-- "Cancelar pedido" solo se muestra si el pedido sigue en preparación
+         (estado-pedido.js lo destapa) -->
+    <div class="acciones acciones-pedido">
+      <a href="mis-pedidos.html">← Volver a mis pedidos</a>
+      <button type="button" id="btn-cancelar-pedido" class="btn-cancelar" hidden>Cancelar pedido</button>
     </div>
+    <!-- aviso de "cancelado con éxito" o del error -->
+    <p id="mensaje-pedido" class="mensaje-pedido" role="status"></p>
 
     <!-- SIN PEDIDO (entró directo, sin pagar) -->
     <section id="sin-pedido">

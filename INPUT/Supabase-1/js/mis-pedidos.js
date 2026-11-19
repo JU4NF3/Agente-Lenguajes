@@ -74,6 +74,7 @@ async function cargarPedidos() {
   // 3) Una tarjeta-enlace por pedido. Aquí todo son números, fechas y
   // estados de la base (nada escrito por el cliente), así que innerHTML
   // es seguro, igual que en la galería.
+  // Cancelar un pedido se hace en su detalle (estado-pedido.html).
   lista.innerHTML = pedidos.map((p) => {
     const fecha = new Date(p.confirmado_en ?? p.created_at)
       .toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });

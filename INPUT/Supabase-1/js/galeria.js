@@ -620,29 +620,38 @@ async function vaciarCarrito() {
 // base (no el de localStorage); se leen sus detalles para llenar carrito
 // y detalleIds. Sin sesión se queda el de localStorage (modo demostración).
 async function cargarCarritoDesdeBD() {
+  // a) el panel necesita PRODUCTOS para mostrar nombres y precios
+  await productosListos;
+
+  // b) se parte de cero: el carrito de verdad es el de la base
+  vaciarCarritoLocal();
+
+  // c) sin sesión no hay nada que leer
   const usuario = await obtenerUsuario();
   if (!usuario) return;
 
-  // OJO: este carrito es de la base, no de este navegador → se vacía el local
-  carrito = {};
-  pedidoId = await buscarCarrito(usuario);
+  // d) UNA sola consulta: el pedido en 'carrito' y, anidados, sus detalles.
+  // Funciona porque detalles_pedidos.pedido_id es FK a pedidos.id.
+  const { data, error } = await db
+    .from('pedidos')
+    .select('id, detalles_pedidos(id, producto_id, cantidad)')
+    .eq('cliente_id', usuario.id)
+    .eq('estado', 'carrito')
+    .maybeSingle();
 
-  if (pedidoId) {
-    const { data, error } = await db
-      .from('detalles_pedidos')
-      .select('id, producto_id, cantidad')
-      .eq('pedido_id', pedidoId);
-
-    if (error) {
-      console.log('Error al leer el carrito:', error);
-    } else {
-      data.forEach((d) => {
-        carrito[d.producto_id] = d.cantidad;
-        detalleIds[d.producto_id] = d.id;
-      });
-    }
+  // e) error o sin carrito abierto → termina
+  if (error) {
+    console.log('Error al leer el carrito:', error);
+    return;
   }
+  if (!data) return;
 
+  // f) llena carrito y detalleIds con lo guardado en la base
+  pedidoId = data.id;
+  data.detalles_pedidos.forEach((d) => {
+    carrito[d.producto_id] = d.cantidad;
+    detalleIds[d.producto_id] = d.id;
+  });
   actualizarCarrito();
 }
 
@@ -915,7 +924,9 @@ async function obtenerProductos() {
 // del carrito guardado) de una vez, mostramos "Cargando..." mientras llega
 // la respuesta de Supabase, y solo cuando los productos están cargados
 // pintamos las categorías y el grid.
-async function iniciar() {
+// Es async, así que devuelve una promesa que termina cuando acabó la carga
+// (también si hubo error): eso es lo que espera cargarCarritoDesdeBD().
+async function cargarProductos() {
   actualizarBotonTema();
   actualizarBadge();
   grid.innerHTML = '<p class="conteo">Cargando productos…</p>';
@@ -932,7 +943,7 @@ async function iniciar() {
 
   pintarCategorias();
   render();
-  await cargarCarritoDesdeBD(); // después de PRODUCTOS: el panel los necesita
 }
 
-iniciar();
+const productosListos = cargarProductos();
+cargarCarritoDesdeBD(); // espera a productosListos por dentro

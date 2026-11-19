@@ -53,6 +53,11 @@ const foto = leerFoto();
 // fecha, comprador, tarjeta_final }. Lo llena iniciar().
 let pedido = null;
 
+// Botón "Cancelar pedido" y su aviso (ver 0c). Van antes de iniciar()
+// porque iniciar() decide si el botón se muestra.
+const btnCancelar = document.getElementById('btn-cancelar-pedido');
+const mensajePedido = document.getElementById('mensaje-pedido');
+
 iniciar();
 
 // ---- 0) ARRANQUE ----
@@ -94,10 +99,54 @@ async function iniciar() {
 
   // El camión va donde diga la base. ?? 1: un estado que no está en el
   // mapa (no debería pasar: el CHECK de la tabla solo deja los conocidos)
-  pintarSeguimiento(PASO_POR_ESTADO[datos.fila.estado] ?? 1, datos.fila.estado === 'cancelado');
+  pintarSeguimiento(
+    PASO_POR_ESTADO[datos.fila.estado] ?? 1,
+    datos.fila.estado === 'cancelado',
+    datos.fila.motivo_cancelacion,
+  );
   pintarDetalle();
   pintarEntrega(datos.fila, datos.cliente, sesion.user.email);
+
+  // Solo se puede cancelar mientras está en preparación ('confirmado');
+  // la base lo vuelve a revisar en cancelar_pedido.
+  btnCancelar.hidden = datos.fila.estado !== 'confirmado';
 }
+
+// ---- 0c) CANCELAR EL PEDIDO ----
+// El navegador NO cambia el estado ni el stock: llama a cancelar_pedido
+// (db.rpc). La base revisa que el pedido sea tuyo y siga en preparación,
+// lo pasa a 'cancelado' y un trigger devuelve las unidades al stock.
+function mostrarMensaje(texto, tipo) {
+  mensajePedido.textContent = texto;
+  mensajePedido.className = `mensaje-pedido ${tipo}`;
+}
+
+btnCancelar.addEventListener('click', async () => {
+  if (!pedido?.id) return;
+  if (!confirm(`¿Seguro que quieres cancelar el pedido #${pedido.id}? Esta acción no se puede deshacer.`)) return;
+
+  btnCancelar.disabled = true;
+  btnCancelar.textContent = 'Cancelando...';
+  mostrarMensaje('', '');
+
+  const { error } = await db.rpc('cancelar_pedido', { p_pedido_id: pedido.id });
+
+  btnCancelar.disabled = false;
+  btnCancelar.textContent = 'Cancelar pedido';
+
+  if (error) {
+    console.log('Error al cancelar el pedido:', error);
+    // el texto lo escribe la función (ej. 'Solo puedes cancelar pedidos que aun estan en preparacion')
+    mostrarMensaje(error.message, 'error');
+    return;
+  }
+
+  // La línea de progreso pasa a "Pedido cancelado" y el botón desaparece.
+  // El motivo es el que guarda cancelar_pedido cuando cancela el cliente.
+  pintarSeguimiento(PASO_POR_ESTADO.confirmado, true, 'Cancelado por el cliente');
+  btnCancelar.hidden = true;
+  mostrarMensaje(`Pedido #${pedido.id} cancelado con éxito. Los productos volvieron al stock.`, 'ok');
+});
 
 // Pantalla "No tienes un pedido activo" (con otro texto si hace falta)
 function sinPedido(titulo, texto) {
@@ -113,7 +162,7 @@ function sinPedido(titulo, texto) {
 async function leerPedidoDeBase(idPedido, idCliente) {
   const [resPedido, resDetalles, resTotal, resCliente] = await Promise.all([
     db.from('pedidos')
-      .select('id, estado, envio, direccion, telefono, observacion, created_at, confirmado_en')
+      .select('id, estado, envio, direccion, telefono, observacion, created_at, confirmado_en, motivo_cancelacion')
       .eq('id', idPedido)
       .maybeSingle(),
     db.from('detalles_pedidos')
@@ -168,12 +217,20 @@ async function leerPedidoDeBase(idPedido, idCliente) {
 
 // ---- 1) LÍNEA DE PROGRESO + CAMIÓN ----
 // paso: 0..3 (posición en PASOS). cancelado: el pedido se anuló.
-function pintarSeguimiento(paso, cancelado = false) {
+// motivo: por qué se canceló (columna motivo_cancelacion), si lo hay.
+function pintarSeguimiento(paso, cancelado = false, motivo = null) {
   // Título y subtítulo según el paso actual.
   document.getElementById('titulo-estado').textContent =
     cancelado ? 'Pedido cancelado' : PASOS[paso].titulo;
   document.getElementById('subtitulo-estado').textContent =
     cancelado ? 'Este pedido fue cancelado. Si tienes dudas, escríbenos.' : PASOS[paso].sub;
+
+  // Caja con el motivo, solo en pedidos cancelados que lo tengan (los que
+  // se cancelaron antes de existir la columna no traen motivo).
+  // textContent: el texto llega de la base y no se interpreta como HTML.
+  const cajaMotivo = document.getElementById('motivo-cancelacion');
+  cajaMotivo.hidden = !(cancelado && motivo);
+  document.getElementById('motivo-texto').textContent = motivo ?? '';
 
   // Número de pedido: el id real de la tabla pedidos (fotos viejas sin id
   // usan un número corto sacado de la fecha, como antes).

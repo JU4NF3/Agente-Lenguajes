@@ -63,9 +63,13 @@ function aplicarAcceso(esAdmin) {
     contenido.hidden = false;
     contenido.classList.add('revelado');
     contenido.scrollIntoView(); // salto directo, sin animación de scroll
+    // secciones de Pedidos y Clientes (admin-pedidos.js)
+    if (typeof cargarPanelPedidos === 'function') cargarPanelPedidos();
   } else {
     // Al cerrar sesión volvemos arriba para ver bien la pantalla de login.
     window.scrollTo(0, 0);
+    // no dejar datos de clientes en la página
+    if (typeof limpiarPanelPedidos === 'function') limpiarPanelPedidos();
   }
 }
 

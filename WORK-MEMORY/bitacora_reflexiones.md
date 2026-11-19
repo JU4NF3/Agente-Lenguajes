@@ -157,3 +157,12 @@ cliente me lleve directo a la tienda, y que "Mi cuenta" abra en el formulario de
 datos en lugar de la pantalla de bienvenida. Me quedó pendiente conectar el formulario de
 pago con la tabla de pedidos, porque la tabla todavía está vacía y me falta pasar los
 nombres exactos de las columnas.
+
+## 2026-11-19
+Hoy básicamente retocamos el frontend para que quedara bien y verificamos que todo
+funcionara bien entre el backend y el frontend. Revisamos que los comandos de SQL usaran los
+nombres reales de mis tablas en Supabase, comprobamos desde la API que las tablas, la vista
+y las funciones respondieran (y que sin sesión quedaran bloqueadas), y que el flujo del pedido
+de verdad descontara y devolviera el stock en la base. En el lado del admin quedaron las
+secciones de pedidos, clientes y finanzas, y la opción de cancelar un pedido con un motivo
+que luego ve el cliente.
