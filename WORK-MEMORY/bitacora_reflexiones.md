@@ -166,3 +166,10 @@ y las funciones respondieran (y que sin sesión quedaran bloqueadas), y que el f
 de verdad descontara y devolviera el stock en la base. En el lado del admin quedaron las
 secciones de pedidos, clientes y finanzas, y la opción de cancelar un pedido con un motivo
 que luego ve el cliente.
+
+## 2026-11-20
+Hoy fue más independiente: hice yo mismo correcciones sobre lo que ya teníamos. Además
+armé el puente con mi proyecto real, Elion: un documento de contexto y los scripts SQL
+(tablas, RLS, triggers, funciones, datos iniciales y pago con Wompi) para llevar todo lo
+que aprendí de bases de datos en Supabase-1 a una base de datos nueva solo para Elion,
+sin tocar el ejercicio de la U.
